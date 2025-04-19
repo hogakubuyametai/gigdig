@@ -1,0 +1,53 @@
+@charset 'utf-8';
+
+body {
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-size: 14px;
+}
+
+table {
+  margin: 0 auto;
+}
+
+table {
+  border: 2px solid #eee;
+  border-collapse: collapse;
+}
+
+thead,
+tfoot {
+  background: #eee;
+}
+
+th,
+td {
+  padding:8px 64px 64px;
+  text-align: center;
+}
+
+tbody td:first-child {
+  color: red;
+}
+
+tbody td:last-child {
+  color: blue;
+}
+
+tfoot {
+  font-weight: bold;
+}
+
+td.disabled {
+  opacity: 0.3;
+}
+
+td.today {
+  font-weight: bold;
+}
+
+#prev,
+#next,
+#today {
+  cursor: pointer;
+  user-select: none;
+}
