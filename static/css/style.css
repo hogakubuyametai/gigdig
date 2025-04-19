@@ -6,6 +6,10 @@ body {
 }
 
 table {
+  margin: 0 auto;
+}
+
+table {
   border: 2px solid #eee;
   border-collapse: collapse;
 }
@@ -17,7 +21,7 @@ tfoot {
 
 th,
 td {
-  padding: 8px;
+  padding:8px 64px 64px;
   text-align: center;
 }
 

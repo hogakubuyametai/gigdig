@@ -3,10 +3,11 @@
 console.clear();
 
 {
-  const year = 2025;
-  const month = 3;
+  const today = new Date();
+  let year = today.getFullYear();
+  let month = today.getMonth();
 
-  function getCallenderHead() {
+  function getCalendarHead() {
     const dates = [];
     const d = new Date(year, month, 0).getDate();
     const n = new Date(year, month, 1).getDay();
@@ -21,7 +22,7 @@ console.clear();
     return dates;
   }
 
-  function getCallenderBody() {
+  function getCalendarBody() {
     const dates = [];
     const lastDate = new Date(year, month + 1, 0).getDate();
 
@@ -32,10 +33,15 @@ console.clear();
         isDisabled: false, 
       });
     }
+
+    if (year === today.getFullYear() && month === today.getMonth()) {
+      dates[today.getDate() - 1].isToday = true;
+    }
+
     return dates;
   }
 
-  function getCallenderTail() {
+  function getCalendarTail() {
     const dates = [];
     const lastDay = new Date(year, month + 1, 0).getDay();
 
@@ -50,17 +56,83 @@ console.clear();
     return dates;
   }
 
-  function createCalender() {
-    const dates = [
-      ...getCallenderHead(),
-      ...getCallenderBody(),
-      ...getCallenderTail(),
-    ];
-    console.log(dates);
+  function clearCalendar() {
+    const tbody = document.querySelector('tbody');
+
+    while (tbody.firstChild) {
+      tbody.removeChild(tbody.firstChild);
+    }
   }
 
-  createCalender();
-  // getCallenderBody();
-  // getCallenderHead();
-  getCallenderTail();
+  function renderTitle() {
+    const title = `${year}/${String(month + 1).padStart(2, '0')}`;
+    document.getElementById('title').textContent = title;
+  }
+
+  function renderWeeks() {
+    const dates = [
+      ...getCalendarHead(),
+      ...getCalendarBody(),
+      ...getCalendarTail(),
+    ];
+
+    const weeks = [];
+    const weeksCount = dates.length / 7;
+
+    for (let i = 0; i < weeksCount; i++) {
+      weeks.push(dates.splice(0, 7));
+    }
+
+    weeks.forEach(week => {
+      const tr = document.createElement('tr');
+      week.forEach(date => {
+        const td = document.createElement('td');
+
+        td.textContent = date.date;
+        if (date.isToday) {
+          td.classList.add('today');
+        }
+        if (date.isDisabled) {
+          td.classList.add('disabled');
+        }
+
+        tr.appendChild(td);
+      });
+      document.querySelector('tbody').appendChild(tr);
+    })
+  }
+
+
+  function createCalendar() {
+    clearCalendar();
+    renderTitle();
+    renderWeeks();
+  }
+
+  createCalendar();
+
+  document.getElementById('prev').addEventListener('click', () => {
+    month--;
+    if (month < 0) {
+      year--;
+      month = 11;
+    }
+    createCalendar();
+  })
+
+  document.getElementById('next').addEventListener('click', () => {
+    month++;
+    if (month >11) {
+      year++;
+      month = 0;
+    }
+    createCalendar();
+  })
+
+  document.getElementById('today').addEventListener('click', () => {
+   year = today.getFullYear();
+   month = today.getMonth();
+
+   createCalendar();
+  })
 }
