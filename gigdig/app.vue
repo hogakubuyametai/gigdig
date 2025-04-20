@@ -1,6 +1,9 @@
+<script setup>
+useHead({
+  title: 'gigdig',
+});
+</script>
+
 <template>
-  <div>
-    <NuxtRouteAnnouncer />
-    <NuxtWelcome />
-  </div>
+  <NuxtPage />
 </template>
