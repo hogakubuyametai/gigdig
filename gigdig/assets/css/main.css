@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+@tailwind utilities;
+
+/* @layer utilities {
+  td.disabled {
+    @apply opacity-30;
+  }
+
+  td.today {
+    @apply font-bold;
+  }
+} */
