@@ -20,9 +20,14 @@ watch(inputArtistName, (newValue) => {
   }
 
   debounceTimeout.value = setTimeout(() => {
+    if (!newValue) {
+      artists.value = '';
+      return;
+    }
     fetchArtists(newValue);
     debounceTimeout.value = null;
   }, debounceDelay);
+
 });
 </script>
 
