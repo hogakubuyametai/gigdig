@@ -1,4 +1,6 @@
 <script setup>
+import AutoComplete from 'vue3-autocomplete'
+
 const artists = ref([]);
 const inputArtistName = ref('');
 const debounceTimeout = ref(null);
@@ -21,7 +23,7 @@ watch(inputArtistName, (newValue) => {
 
   debounceTimeout.value = setTimeout(() => {
     if (!newValue) {
-      artists.value = '';
+      artists.value = [];
       return;
     }
     fetchArtists(newValue);
@@ -33,10 +35,16 @@ watch(inputArtistName, (newValue) => {
 
 <template>
   <Calendar />
-  <form action="#">
+  <!-- <form action="#">
     <input v-model="inputArtistName" type="search" id="search-artists" name="search-artists" size="16">
-  </form>
-  <ul class="text-center">
-    <li v-for="artist in artists" :key="artist.id">{{ artist.name }}</li>
-  </ul>
+  </form> -->
+  <AutoComplete
+    v-model="inputArtistName"
+    :results="artists"
+    :debounce="0"
+    :placeholder="'Artist name'"
+    />
+  <!-- <option class="mx-auto flex flex-col justify-center">
+    <select v-for="artist in artists" :key="artist.id">{{ artist.name }}</select>
+  </option> -->
 </template>
