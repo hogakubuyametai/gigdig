@@ -261,38 +261,7 @@ const storeGigInfo = () => {
       </tfoot> -->
     </table>
   </div>
-  <div
-    id="add-gig-modal"
-    class="w-3/10 mx-auto mt-4 rounded border border-gray-400 p-4 shadow hidden"
-  >
-    <p class="font-bold text-2xl">Add a gig</p>
-    <form @submit.prevent="storeGigInfo" class="flex flex-col gap-4 p-4">
-      <input
-        type="date"
-        id="gig-date"
-        name="gig-date"
-        size="24"
-        class="px-1 bg-white border border-[#cbd5e1] rounded-md shadow-sm focus:border-[#3b82f6] focus:ring-[#3b82f6] focus:ring-1"
-        placeholder="YYYY/MM/DD"
-      />
-      <ArtistNameInput @selectedArtist="handleSelectedArtist" />
-      <!-- <input
-        type="text"
-        id="artist-name"
-        name="artist-name"
-        size="24"
-        class="px-1 bg-white border border-[#cbd5e1] rounded-md shadow-sm focus:border-[#3b82f6] focus:ring-[#3b82f6] focus:ring-1"
-        placeholder="Artist name"
-      /> -->
-
-      <button
-        type="submit"
-        class="bg-blue-400 px-4 py-2 cursor-pointer rounded-md text-white"
-      >
-        Add
-      </button>
-    </form>
-  </div>
+  <AddGigModal @submit="storeGigInfo" @artistSelected="handleSelectedArtist" />
 </template>
 
 <style>
