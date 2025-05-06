@@ -8,12 +8,16 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   modules: [
     '@nuxt/eslint',
-    'nuxt-primevue'
+    'nuxt-primevue',
+    '@nuxt/ui',
   ],
   vite: {
     plugins: [
       tailwindcss(),
     ],
+  },
+  ui: {
+    colorMode: false,
   },
   runtimeConfig: {
     spotifyClientId: process.env.SPOTIFY_CLIENT_ID,

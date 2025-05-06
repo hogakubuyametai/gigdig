@@ -12,6 +12,7 @@
     "format": "eslint --fix . "
   },
   "dependencies": {
+    "@nuxt/ui": "^3.1.1",
     "@tailwindcss/vite": "^4.1.4",
     "nuxt": "^3.16.2",
     "tailwindcss": "^4.1.4",
