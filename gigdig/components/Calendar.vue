@@ -262,6 +262,7 @@ const storeGigInfo = () => {
     </table>
   </div>
   <AddGigModal @closeModal="hideModal" @submit="storeGigInfo" @artistSelected="handleSelectedArtist" />
+  <GigDetailModal />
 </template>
 
 <style>
