@@ -9,6 +9,18 @@ const debounceTimeout = ref(null);
 const debounceDelay = 300;
 const isSelecting = ref(false);
 
+const selectedArtist = ref({ id: null, name: null });
+
+const calendarRef = ref();
+
+const showGigDetailModal = ref(false);
+const selectedGig = ref(null);
+
+const handleShowGigDetail = (gigInfo) => {
+  selectedGig.value = gigInfo;
+  showGigDetailModal.value = true;
+};
+
 const fetchArtists = async (input) => {
   try {
     const data = await searchArtists(input);
@@ -58,11 +70,70 @@ const fetchTopTracks = async (artistId) => {
   }
 };
 
+const handleSelectedArtist = (artist) => {
+  selectedArtist.value = artist;
+  console.log("選択されたアーティスト:", artist);
+};
+
+const getGigDate = () => {
+  const dateInput = document.getElementById("gig-date");
+  return dateInput?.value;
+};
+
+const isValidGigInput = (date, artist) => {
+  return date && artist.id && artist.name ? true : false;
+};
+
+const createGigData = (date, artist) => {
+  return {
+    date,
+    artistId: artist.id,
+    artistName: artist.name,
+  };
+};
+
+const addGigToLocalStorage = (gigData) => {
+  const existingData = JSON.parse(localStorage.getItem("gigDataList") || "[]");
+  existingData.push(gigData);
+  localStorage.setItem("gigDataList", JSON.stringify(existingData));
+  return existingData;
+};
+
+const hideModal = () => {
+  console.log("hideModalが呼ばれました");
+  const addGigModal = document.getElementById("add-gig-modal");
+  if (addGigModal) {
+    addGigModal.classList.add("hidden");
+  }
+};
+
+const storeGigInfo = () => {
+  const date = getGigDate();
+  const artist = selectedArtist.value;
+
+  if (!isValidGigInput(date, artist)) {
+    alert("日付またはアーティスト情報が不足しています。");
+    return;
+  }
+
+  const gigData = createGigData(date, artist);
+  const updatedGigList = addGigToLocalStorage(gigData);
+
+  hideModal();
+
+  calendarRef.value?.renderCalendar();
+
+  console.log("保存されたgig情報:", gigData);
+};
+
+
 </script>
 
 <template>
-  <Calendar />
-  <div class="max-w-4xl mx-auto">
+  <Calendar @show-gig-detail="handleShowGigDetail" ref="calendarRef" />
+  <AddGigModal @closeModal="hideModal" @submit="storeGigInfo" @artistSelected="handleSelectedArtist" />
+  <GigDetailModal v-if="showGigDetailModal" :gig="selectedGig" @closeModal="showGigDetailModal = false" />
+  <!-- <div class="max-w-4xl mx-auto">
     <form @submit.prevent="submitArtistName">
       <div class="flex gap-4">
         <input
@@ -105,7 +176,7 @@ const fetchTopTracks = async (artistId) => {
       style="border-radius:12px">
     </iframe>
   </div>
-  </div>
+  </div> -->
 </template>
 
 
