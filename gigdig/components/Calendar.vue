@@ -1,14 +1,14 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted } from 'vue';
+
+const emit = defineEmits(['show-gig-detail']);
 
 const today = new Date();
 const year = ref(today.getFullYear());
 const month = ref(today.getMonth());
 
-const calendarTitle = ref("");
+const calendarTitle = ref('');
 const calendarBody = ref(null);
-
-const selectedArtist = ref({ id: null, name: null });
 
 function getCalendarHead() {
   const dates = [];
@@ -61,10 +61,9 @@ function getCalendarTail() {
   return dates;
 }
 
-
 const loadGigDataList = () => {
   return JSON.parse(
-    localStorage.getItem("gigDataList") || "[]"
+    localStorage.getItem('gigDataList') || '[]'
   );
 }
 
@@ -80,7 +79,7 @@ function renderCalendar() {
 
   calendarTitle.value = `${year.value}/${String(month.value + 1).padStart(
     2,
-    "0"
+    '0'
   )}`;
 
   // まずは既存のtbodyの中身をクリア
@@ -91,12 +90,12 @@ function renderCalendar() {
     // 新しい週の要素を作成して追加
     for (let i = 0; i < weeksCount; i++) {
       const week = dates.splice(0, 7);
-      const tr = document.createElement("tr");
+      const tr = document.createElement('tr');
 
       week.forEach((date) => {
-        const td = document.createElement("td");
-        const div = document.createElement("div");
-        div.classList.add("calendar-cell");
+        const td = document.createElement('td');
+        const div = document.createElement('div');
+        div.classList.add('calendar-cell');
         div.textContent = date.date;
 
         const selectedDate = new Date(year.value, date.month, date.date + 1).toISOString().slice(0, 10); // YYYY-MM-DD
@@ -104,37 +103,41 @@ function renderCalendar() {
         //ライブ情報を表示
         const gigsOnThisDay = gigs.filter((gig) => gig.date === selectedDate);
         gigsOnThisDay.forEach((gig) => {
-          const gigLabel = document.createElement("div");
+          const gigLabel = document.createElement('div');
           gigLabel.textContent = gig.artistName;
-          gigLabel.classList.add("gig-label");
+          gigLabel.classList.add('gig-label');
 
-          gigLabel.addEventListener("click", (event) => {
+          gigLabel.addEventListener('click', (event) => {
             event.stopPropagation();
-            alert(`アーティスト: ${gig.artistName}\n日付: ${gig.date}`);
+            
+            emit('show-gig-detail', {
+              date: gig.date,
+              artistName: gig.artistName,
+            });
           });
           div.appendChild(gigLabel);
         });
 
-        div.addEventListener("click", () => {
-          const addGigModal = document.getElementById("add-gig-modal");
-          const gigDateInput = document.getElementById("gig-date");
+        div.addEventListener('click', () => {
+          const addGigModal = document.getElementById('add-gig-modal');
+          const gigDateInput = document.getElementById('gig-date');
 
           // const selectedDate = new Date(year.value, date.month, date.date + 1);
           // const formattedDate = selectedDate.toISOString().slice(0, 10); // YYYY-MM-DD
 
           if (addGigModal && gigDateInput) {
-            addGigModal.classList.remove("hidden");
+            addGigModal.classList.remove('hidden');
             gigDateInput.value = selectedDate;
           }
 
-          // console.log("選択された日付:", formattedDate);
+          // console.log('選択された日付:', formattedDate);
         });
 
         if (date.isToday) {
-          div.classList.add("today");
+          div.classList.add('today');
         }
         if (date.isDisabled) {
-          div.classList.add("disabled");
+          div.classList.add('disabled');
         }
         tr.appendChild(td);
         td.appendChild(div);
@@ -143,6 +146,10 @@ function renderCalendar() {
     }
   }
 }
+
+defineExpose({
+  renderCalendar,
+});
 
 onMounted(() => {
   renderCalendar();
@@ -172,101 +179,38 @@ const goToToday = () => {
   renderCalendar();
 };
 
-const handleSelectedArtist = (artist) => {
-  selectedArtist.value = artist;
-  console.log("選択されたアーティスト:", artist);
-};
-
-const getGigDate = () => {
-  const dateInput = document.getElementById("gig-date");
-  return dateInput?.value;
-};
-
-const isValidGigInput = (date, artist) => {
-  return date && artist.id && artist.name ? true : false;
-};
-
-const createGigData = (date, artist) => {
-  return {
-    date,
-    artistId: artist.id,
-    artistName: artist.name,
-  };
-};
-
-const addGigToLocalStorage = (gigData) => {
-  const existingData = JSON.parse(localStorage.getItem("gigDataList") || "[]");
-  existingData.push(gigData);
-  localStorage.setItem("gigDataList", JSON.stringify(existingData));
-  return existingData;
-};
-
-const hideModal = () => {
-  console.log("hideModalが呼ばれました");
-  const addGigModal = document.getElementById("add-gig-modal");
-  if (addGigModal) {
-    addGigModal.classList.add("hidden");
-  }
-};
-
-const storeGigInfo = () => {
-  const date = getGigDate();
-  const artist = selectedArtist.value;
-
-  if (!isValidGigInput(date, artist)) {
-    alert("日付またはアーティスト情報が不足しています。");
-    return;
-  }
-
-  const gigData = createGigData(date, artist);
-  const updatedGigList = addGigToLocalStorage(gigData);
-
-  hideModal();
-  renderCalendar();
-
-  console.log("保存されたgig情報:", gigData);
-};
-
-
 </script>
 
 <template>
-  <div class="px-4 w-7/10 mx-auto">
-    <table class="mt-12 w-full font-mono rounded">
-      <thead class="border-b-1 border-gray-400 w-full">
-        <tr class="flex justify-between w-full">
-          <th class="cursor-pointer select-none" id="prev" @click="prevMonth">
+  <div class='px-4 w-7/10 mx-auto'>
+    <table class='mt-12 w-full font-mono rounded'>
+      <thead class='border-b-1 border-gray-400 w-full'>
+        <tr class='flex justify-between w-full'>
+          <th class='cursor-pointer select-none' id='prev' @click='prevMonth'>
             &laquo;
           </th>
-          <th id="title" colspan="5">{{ calendarTitle }}</th>
-          <th class="cursor-pointer select-none" id="next" @click="nextMonth">
+          <th id='title' colspan='5'>{{ calendarTitle }}</th>
+          <th class='cursor-pointer select-none' id='next' @click='nextMonth'>
             &raquo;
           </th>
         </tr>
-        <tr class="mt-4 flex justify-around w-full">
-          <th><div class="px-4">Sun</div></th>
-          <th><div class="px-4">Mon</div></th>
-          <th><div class="px-4">Tue</div></th>
-          <th><div class="px-4">Wed</div></th>
-          <th><div class="px-4">Thu</div></th>
-          <th><div class="px-4">Fri</div></th>
-          <th><div class="px-4">Sat</div></th>
+        <tr class='mt-4 flex justify-around w-full'>
+          <th><div class='px-4'>Sun</div></th>
+          <th><div class='px-4'>Mon</div></th>
+          <th><div class='px-4'>Tue</div></th>
+          <th><div class='px-4'>Wed</div></th>
+          <th><div class='px-4'>Thu</div></th>
+          <th><div class='px-4'>Fri</div></th>
+          <th><div class='px-4'>Sat</div></th>
         </tr>
       </thead>
-      <tbody ref="calendarBody" class="w-full"></tbody>
-      <!-- <tfoot>
-        <tr>
-          <td class="cursor-pointer select-none" id="today" colspan="7" @click="goToToday">Today</td>
-        </tr>
-      </tfoot> -->
+      <tbody ref='calendarBody' class='w-full'></tbody>
     </table>
   </div>
-  <AddGigModal @closeModal="hideModal" @submit="storeGigInfo" @artistSelected="handleSelectedArtist" />
-  <GigDetailModal />
 </template>
 
 <style>
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @tailwind utilities;
 

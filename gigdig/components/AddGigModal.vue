@@ -18,56 +18,6 @@ const handleArtistSelected = (artist) => {
   console.log('選択されたアーティスト:', artist);
 };
 
-// const getGigDate = () => {
-//   const dateInput = document.getElementById('gig-date');
-//   return dateInput?.value;
-// };
-
-// const isValidGigInput = (date, artist) => {
-//   return date && artist.id && artist.name ? true : false;
-// };
-
-// const createGigData = (date, artist) => {
-//   return {
-//     date,
-//     artistId: artist.id,
-//     artistName: artist.name,
-//   };
-// };
-
-// const addGigToLocalStorage = (gigData) => {
-//   const existingData = JSON.parse(localStorage.getItem('gigDataList') || '[]');
-//   existingData.push(gigData);
-//   localStorage.setItem('gigDataList', JSON.stringify(existingData));
-//   return existingData;
-// };
-
-// const hideModal = () => {
-//   console.log('hideModalが呼ばれました');
-//   const addGigModal = document.getElementById('add-gig-modal');
-//   if (addGigModal) {
-//     addGigModal.classList.add('hidden');
-//   }
-// };
-
-// const storeGigInfo = () => {
-//   const date = getGigDate();
-//   const artist = selectedArtist.value;
-
-//   if (!isValidGigInput(date, artist)) {
-//     alert('日付またはアーティスト情報が不足しています。');
-//     return;
-//   }
-
-//   const gigData = createGigData(date, artist);
-//   const updatedGigList = addGigToLocalStorage(gigData);
-
-//   hideModal();
-//   renderCalendar();
-
-//   console.log('保存されたgig情報:', gigData);
-// };
-
 </script>
 
 <template>
