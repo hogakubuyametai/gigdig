@@ -183,16 +183,29 @@ const goToToday = () => {
 
 <template>
   <div class="px-4 max-w-5xl mx-auto">
-    <div class="flex justify-between items-center mt-8 mb-4">
-      <button @click="prevMonth" class="text-gray-500 hover:text-black text-xl">&laquo;</button>
-      <h2 class="text-xl font-bold font-sans">{{ calendarTitle }}</h2>
-      <button @click="nextMonth" class="text-gray-500 hover:text-black text-xl">&raquo;</button>
-    </div>
+    <div class="flex items-center gap-5 mt-8 mb-4">
+  <!-- Today ボタン -->
+  <button
+    @click="goToToday"
+    class="text-sm px-4 py-1 border border-gray-400 rounded-full hover:bg-gray-100 transition cursor-pointer"
+  >
+    Today
+  </button>
 
+  <!-- < > ボタン -->
+  <button @click="prevMonth" class="text-xl hover:text-gray-600 transition cursor-pointer">&lt;</button>
+  <button @click="nextMonth" class="text-xl hover:text-gray-600 transition cursor-pointer">&gt;</button>
+
+  <!-- yyyy/mm -->
+  <h2 class="text-2xl font-sans ml-2">{{ calendarTitle }}</h2>
+</div>
+
+    <!-- 曜日 -->
     <div class="grid grid-cols-7 text-center text-sm text-gray-500 border-b pb-2 mb-2 font-sans">
       <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
     </div>
 
+    <!-- カレンダー本体 -->
     <table class="w-full">
       <tbody ref="calendarBody" class="grid grid-rows-6 gap-px">
         <!-- JavaScriptで描画 -->
@@ -200,6 +213,7 @@ const goToToday = () => {
     </table>
   </div>
 </template>
+
 
 
 <style>
@@ -217,19 +231,32 @@ const goToToday = () => {
   }
 
   .calendar-cell {
-    @apply font-sans text-xs flex flex-col items-start h-full w-full rounded-md px-2 py-1 cursor-pointer;
+    @apply font-sans text-xs flex flex-col items-start h-full w-full rounded-md px-2 py-1 cursor-pointer select-none;
   }
 
-  td.today .calendar-cell {
-    @apply bg-blue-100 border border-blue-300;
+  /* Today */
+  .calendar-cell.today {
+    @apply bg-blue-100 border border-blue-300 text-blue-500 font-bold;
   }
 
-  .disabled .calendar-cell {
+  /* Disabled days (前後月) */
+  .calendar-cell.disabled {
     @apply text-gray-400 opacity-50;
   }
 
+  /* Gig label */
   .gig-label {
-    @apply bg-blue-500 text-white text-[10px] mt-1 px-2 py-0.5 rounded-full truncate max-w-full hover:bg-blue-600 transition;
+    @apply bg-blue-500 text-white text-[12px] mt-1 px-2 py-0.5 rounded-full truncate max-w-full hover:bg-blue-600 transition;
+  }
+
+  /* Sunday */
+  tbody td:first-child .calendar-cell {
+    @apply text-red-500;
+  }
+
+  /* Saturday */
+  tbody td:last-child .calendar-cell {
+    @apply text-blue-500;
   }
 }
 
