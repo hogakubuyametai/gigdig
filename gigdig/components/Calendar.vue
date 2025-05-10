@@ -182,32 +182,39 @@ const goToToday = () => {
 </script>
 
 <template>
-  <div class='px-4 w-7/10 mx-auto'>
-    <table class='mt-12 w-full font-mono rounded'>
-      <thead class='border-b-1 border-gray-400 w-full'>
-        <tr class='flex justify-between w-full'>
-          <th class='cursor-pointer select-none' id='prev' @click='prevMonth'>
-            &laquo;
-          </th>
-          <th id='title' colspan='5'>{{ calendarTitle }}</th>
-          <th class='cursor-pointer select-none' id='next' @click='nextMonth'>
-            &raquo;
-          </th>
-        </tr>
-        <tr class='mt-4 flex justify-around w-full'>
-          <th><div class='px-4'>Sun</div></th>
-          <th><div class='px-4'>Mon</div></th>
-          <th><div class='px-4'>Tue</div></th>
-          <th><div class='px-4'>Wed</div></th>
-          <th><div class='px-4'>Thu</div></th>
-          <th><div class='px-4'>Fri</div></th>
-          <th><div class='px-4'>Sat</div></th>
-        </tr>
-      </thead>
-      <tbody ref='calendarBody' class='w-full'></tbody>
+  <div class="px-4 max-w-5xl mx-auto">
+    <div class="flex items-center gap-5 mt-8 mb-4">
+  <!-- Today ボタン -->
+  <button
+    @click="goToToday"
+    class="text-sm px-4 py-1 border border-gray-400 rounded-full hover:bg-gray-100 transition cursor-pointer"
+  >
+    Today
+  </button>
+
+  <!-- < > ボタン -->
+  <button @click="prevMonth" class="text-xl hover:text-gray-600 transition cursor-pointer">&lt;</button>
+  <button @click="nextMonth" class="text-xl hover:text-gray-600 transition cursor-pointer">&gt;</button>
+
+  <!-- yyyy/mm -->
+  <h2 class="text-2xl font-sans ml-2">{{ calendarTitle }}</h2>
+</div>
+
+    <!-- 曜日 -->
+    <div class="grid grid-cols-7 text-center text-sm text-gray-500 border-b pb-2 mb-2 font-sans">
+      <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+    </div>
+
+    <!-- カレンダー本体 -->
+    <table class="w-full">
+      <tbody ref="calendarBody" class="grid grid-rows-6 gap-px">
+        <!-- JavaScriptで描画 -->
+      </tbody>
     </table>
   </div>
 </template>
+
+
 
 <style>
 @import 'tailwindcss';
@@ -215,42 +222,42 @@ const goToToday = () => {
 @tailwind utilities;
 
 @layer utilities {
-  tbody div.disabled {
-    @apply opacity-30;
-  }
-
-  td.today {
-    @apply font-bold;
-  }
-
   tbody tr {
-    @apply flex justify-around w-full;
-  }
-
-  tbody td:first-child {
-    @apply text-red-600;
-  }
-
-  tbody td:last-child {
-    @apply text-blue-600;
+    @apply grid grid-cols-7;
   }
 
   tbody td {
-    @apply cursor-pointer w-1/7 border border-gray-100 hover:bg-gray-50/50;
+    @apply h-28 p-2 border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-150;
   }
 
-  tbody div {
-    @apply text-center px-6 pt-2 pb-20;
+  .calendar-cell {
+    @apply font-sans text-xs flex flex-col items-start h-full w-full rounded-md px-2 py-1 cursor-pointer select-none;
+  }
+
+  /* Today */
+  .calendar-cell.today {
+    @apply bg-blue-100 border border-blue-300 text-blue-500 font-bold;
+  }
+
+  /* Disabled days (前後月) */
+  .calendar-cell.disabled {
+    @apply text-gray-400 opacity-50;
+  }
+
+  /* Gig label */
+  .gig-label {
+    @apply bg-blue-500 text-white text-[12px] mt-1 px-2 py-0.5 rounded-full truncate max-w-full hover:bg-blue-600 transition;
+  }
+
+  /* Sunday */
+  tbody td:first-child .calendar-cell {
+    @apply text-red-500;
+  }
+
+  /* Saturday */
+  tbody td:last-child .calendar-cell {
+    @apply text-blue-500;
   }
 }
 
-.gig-label {
-  background-color: #60a5fa; /* 青 */
-  color: white;
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  margin-top: 4px;
-  cursor: pointer;
-}
 </style>
