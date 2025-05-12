@@ -72,6 +72,21 @@ export const searchArtists = async (query) => {
   }
 };
 
+export const getArtistDetails = async (artistId) => {
+  const url = `https://api.spotify.com/v1/artists/${artistId}`;
+  try {
+    const response = await requestWithAuth(url);
+    return response;
+  } catch (error) {
+    console.error("アーティストの詳細取得に失敗しました:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    throw new Error("アーティストの詳細取得に失敗しました。再試行してください。");
+  }
+}
+
 export const getArtistTopTracks = async (artistId) => {
   const url = `https://api.spotify.com/v1/artists/${artistId}/top-tracks`;
   try {

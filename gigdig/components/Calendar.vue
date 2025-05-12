@@ -1,4 +1,5 @@
 <script setup>
+import { ar } from '@nuxt/ui/runtime/locale/index.js';
 import { ref, onMounted } from 'vue';
 
 const emit = defineEmits(['show-gig-detail']);
@@ -112,6 +113,7 @@ function renderCalendar() {
             
             emit('show-gig-detail', {
               date: gig.date,
+              artistId: gig.artistId,
               artistName: gig.artistName,
             });
           });
