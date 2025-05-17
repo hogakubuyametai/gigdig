@@ -1,5 +1,4 @@
 <script setup>
-import { ar } from '@nuxt/ui/runtime/locale/index.js';
 import { ref, onMounted } from 'vue';
 
 const emit = defineEmits(['show-gig-detail']);
