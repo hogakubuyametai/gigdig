@@ -14,9 +14,9 @@ export default defineNuxtConfig({
   ],
   experimental: {
     asyncContext: true,
-    asyncDataCache: true,
-    payloadExtraction: false,
-    renderJsonPayloads: false,
+    // asyncDataCache: true,
+    // payloadExtraction: false,
+    // renderJsonPayloads: false,
     // inlineSSRStyles: false // 追加: インラインスタイルの自動挿入を無効化
   },
   nitro: {
