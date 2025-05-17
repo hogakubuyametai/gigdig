@@ -1,32 +1,35 @@
 <script setup>
-const user = useSupabaseUser();
-const client = useSupabaseClient();
+  const user = useSupabaseUser();
+  const client = useSupabaseClient();
+  
+const { data: userData } = await useAsyncData(
+  "userData",
+  async () => {
 
-// データを非同期で取得
-const { data: userData, pending } = await useAsyncData('userData', async () => {
-  if (!user.value) return null;
+    if (!user.value) return null;
 
-  const { data, error } = await client
-    .from('users')
-    .select('username')
-    .eq('user_id', user.value.id)
-    .single();
+    const { data, error } = await client
+      .from("users")
+      .select("username")
+      .eq("user_id", user.value.id)
+      .single();
 
-  if (error) {
-    console.error('Error fetching user data:', error);
-    return null;
+    if (error) throw error;
+    return data;
+  },
+  {
+    server: true,
+    lazy: false,
+    transform: (data) => ({
+      userName: data?.username || "",
+    }),
+    watch: [user],
+    cache: true,
+    maxAge: 300,
   }
+);
 
-  return {
-    userName: data?.username || ''
-  };
-}, {
-  server: true,
-  lazy: false,
-  immediate: true,
-});
-
-const userName = computed(() => userData.value?.userName || '');
+const userName = computed(() => userData.value?.userName || "");
 
 const artists = ref([]);
 const inputArtistName = ref("");
@@ -45,13 +48,13 @@ const selectedGig = ref(null);
 
 // onMounted(async () => {
 //   const user = await client.auth.getUser();
-  
+
 //   // 認証されていない時、ログインページにリダイレクト
 //   if (!user) {
 //     client.auth.signOut();
 //     window.location.href = "/login";
 //   }
-  
+
 //   // 認証されている場合はユーザー情報を取得
 //   userEmail.value = user.data.user?.email; // ユーザーのメールアドレスを取得
 // });
@@ -76,7 +79,6 @@ const selectedGig = ref(null);
 //   },
 //   { immediate: true }
 // );
-
 
 const fetchArtistImageUrl = async (artistId) => {
   try {
@@ -213,32 +215,26 @@ const signOut = async () => {
 };
 </script>
 <template>
-  <!-- pendingの状態でのテンプレートを統一 -->
-    <div v-if="pending" class="flex items-center justify-center h-screen">
-      <p>Loading...</p>
+  <div v-if="userName" class="ml-4 mt-4 flex justify-between">
+    <div>
+      <p>Hello！ {{ userName }}</p>
+      <h2 class="font-bold">Your Calendar</h2>
     </div>
-    <div v-else class="">
-      <div v-if="userName" class="ml-4 mt-4 flex justify-between">
-        <div>
-          <p>Hello！ {{ userName }}</p>
-          <h2 class="font-bold">Your Calendar</h2>
-        </div>
-        <div>
-          <button @click="signOut">
-            <span class="p-2 bg-blue-300 rounded-md">Logout</span>
-          </button>
-        </div>
-      </div>
-      <Calendar @show-gig-detail="handleShowGigDetail" ref="calendarRef" />
-      <AddGigModal
-        @closeModal="hideModal"
-        @submit="storeGigInfo"
-        @artistSelected="handleSelectedArtist"
-      />
-      <GigDetailModal
-        v-if="showGigDetailModal"
-        :gig="selectedGig"
-        @closeModal="showGigDetailModal = false"
-      />
+    <div>
+      <button @click="signOut">
+        <span class="p-2 bg-blue-300 rounded-md">Logout</span>
+      </button>
     </div>
+  </div>
+  <Calendar @show-gig-detail="handleShowGigDetail" ref="calendarRef" />
+  <AddGigModal
+    @closeModal="hideModal"
+    @submit="storeGigInfo"
+    @artistSelected="handleSelectedArtist"
+  />
+  <GigDetailModal
+    v-if="showGigDetailModal"
+    :gig="selectedGig"
+    @closeModal="showGigDetailModal = false"
+  />
 </template>

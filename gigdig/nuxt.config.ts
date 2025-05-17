@@ -21,10 +21,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     routeRules: {
-      '/': { ssr: true },
-      '/login': { ssr: false }, // loginページをCSRに変更
-      '/confirm': { ssr: false }, // confirmページをCSRに変更
-      '/register-username': { ssr: false }, // register-usernameページをCSRに変更
+      '/': { ssr: true }
     },
   },
   vite: {
