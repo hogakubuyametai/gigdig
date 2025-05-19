@@ -1,4 +1,7 @@
 <script setup>
+const props = defineProps({
+  resetArtistInput: Boolean, // index.vue から受け取る
+});
 
 const emit = defineEmits(['closeModal', 'submit', 'artistSelected']);
 
@@ -13,7 +16,7 @@ const handleSubmit = (event) => {
   console.log('submitが呼ばれました');
 };
 
-const handleArtistSelected = (artist) => {
+const handleSelectedArtist = (artist) => {
   emit('artistSelected', artist);
   console.log('選択されたアーティスト:', artist);
 };
@@ -53,7 +56,9 @@ const handleArtistSelected = (artist) => {
         <label for='artist-name' class='font-semibold block'>
           Artist
         </label>
-        <ArtistNameInput @selectedArtist='handleArtistSelected' />
+        <ArtistNameInput 
+        :reset="resetArtistInput"
+        @artistSelected="handleSelectedArtist" />
       </div>
       <!-- <input
         type='text'

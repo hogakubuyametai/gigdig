@@ -1,11 +1,10 @@
 <script setup>
-  const user = useSupabaseUser();
-  const client = useSupabaseClient();
-  
+const user = useSupabaseUser();
+const client = useSupabaseClient();
+
 const { data: userData } = await useAsyncData(
   "userData",
   async () => {
-
     if (!user.value) return null;
 
     const { data, error } = await client
@@ -31,13 +30,13 @@ const { data: userData } = await useAsyncData(
 
 const userName = computed(() => userData.value?.userName || "");
 
-const artists = ref([]);
-const inputArtistName = ref("");
-const selectedArtistId = ref(null);
-const topTracks = ref([]);
-const debounceTimeout = ref(null);
-const debounceDelay = 300;
-const isSelecting = ref(false);
+// const artists = ref([]);
+// const inputArtistName = ref("");
+// const selectedArtistId = ref(null);
+// const topTracks = ref([]);
+// const debounceTimeout = ref(null);
+// const debounceDelay = 300;
+// const isSelecting = ref(false);
 
 const selectedArtist = ref({ id: null, name: null });
 
@@ -46,39 +45,17 @@ const calendarRef = ref();
 const showGigDetailModal = ref(false);
 const selectedGig = ref(null);
 
-// onMounted(async () => {
-//   const user = await client.auth.getUser();
+const isLoading = ref(false);
 
-//   // 認証されていない時、ログインページにリダイレクト
-//   if (!user) {
-//     client.auth.signOut();
-//     window.location.href = "/login";
-//   }
+const resetArtistInput = ref(false);
 
-//   // 認証されている場合はユーザー情報を取得
-//   userEmail.value = user.data.user?.email; // ユーザーのメールアドレスを取得
-// });
-
-// watch(
-//   user,
-//   async () => {
-//     if (user.value) {
-//       const { data, error } = await client
-//         .from('users')
-//         .select('username')
-//         .eq('user_id', user.value?.id)
-//         .single();
-
-//         if (error) {
-//           console.error("Error fetching user name:", error);
-//           userName.value = null;
-//         } else {
-//           userName.value = data.username;
-//         }
-//     }
-//   },
-//   { immediate: true }
-// );
+// エラー種別の定数定義を追加
+const DB_ERRORS = {
+  42501: "アクセス権限がありません。再度ログインしてください。",
+  23505: "同じ日付のGigが既に登録されています。",
+  23503: "ユーザー情報が見つかりません。",
+  default: "データの保存に失敗しました。時間をおいて再度お試しください。",
+};
 
 const fetchArtistImageUrl = async (artistId) => {
   try {
@@ -100,58 +77,57 @@ const handleShowGigDetail = async (gigInfo) => {
   showGigDetailModal.value = true;
 };
 
-const fetchArtists = async (input) => {
-  try {
-    const data = await searchArtists(input);
-    console.log("searchArtists の結果:", data);
-    artists.value = data;
-  } catch (error) {
-    console.error("artist search error:", error);
-  }
-};
+// const fetchArtists = async (input) => {
+//   try {
+//     const data = await searchArtists(input);
+//     console.log("searchArtists の結果:", data);
+//     artists.value = data;
+//   } catch (error) {
+//     console.error("artist search error:", error);
+//   }
+// };
 
-watch(inputArtistName, (newValue) => {
-  if (isSelecting.value) {
-    isSelecting.value = false;
-    return;
-  }
+// watch(inputArtistName, (newValue) => {
+//   if (isSelecting.value) {
+//     isSelecting.value = false;
+//     return;
+//   }
 
-  if (debounceTimeout.value) {
-    clearTimeout(debounceTimeout.value);
-  }
+//   if (debounceTimeout.value) {
+//     clearTimeout(debounceTimeout.value);
+//   }
 
-  debounceTimeout.value = setTimeout(() => {
-    if (!newValue) {
-      artists.value = [];
-      return;
-    }
-    fetchArtists(newValue);
-    debounceTimeout.value = null;
-  }, debounceDelay);
-});
+//   debounceTimeout.value = setTimeout(() => {
+//     if (!newValue) {
+//       artists.value = [];
+//       return;
+//     }
+//     fetchArtists(newValue);
+//     debounceTimeout.value = null;
+//   }, debounceDelay);
+// });
 
-const setArtistName = (artist) => {
-  isSelecting.value = true;
-  inputArtistName.value = artist.name;
-  selectedArtistId.value = artist.id;
-  console.log(selectedArtistId.value);
-  artists.value = [];
-};
+// const setArtistName = (artist) => {
+//   isSelecting.value = true;
+//   inputArtistName.value = artist.name;
+//   selectedArtistId.value = artist.id;
+//   console.log(selectedArtistId.value);
+//   artists.value = [];
+// };
 
-const fetchTopTracks = async (artistId) => {
-  try {
-    const data = await getArtistTopTracks(artistId);
-    console.log(data);
-    topTracks.value = data;
-    console.log("getArtistTopTracks の結果:", topTracks.value);
-  } catch (error) {
-    console.error("getTopTracks error:", error);
-  }
-};
+// const fetchTopTracks = async (artistId) => {
+//   try {
+//     const data = await getArtistTopTracks(artistId);
+//     console.log(data);
+//     topTracks.value = data;
+//     console.log("getArtistTopTracks の結果:", topTracks.value);
+//   } catch (error) {
+//     console.error("getTopTracks error:", error);
+//   }
+// };
 
 const handleSelectedArtist = (artist) => {
   selectedArtist.value = artist;
-  console.log("選択されたアーティスト:", artist);
 };
 
 const getGigDate = () => {
@@ -159,23 +135,24 @@ const getGigDate = () => {
   return dateInput?.value;
 };
 
+/**
+ * 日付とアーティスト情報の入力が有効かチェックする
+ * @param {string} date - 日付文字列 (YYYY-MM-DD形式)
+ * @param {Object} artist - アーティスト情報
+ * @param {string} artist.id - アーティストのID
+ * @param {string} artist.name - アーティストの名前
+ * @returns {boolean} 入力が有効な場合はtrue
+ */
 const isValidGigInput = (date, artist) => {
-  return date && artist.id && artist.name ? true : false;
-};
-
-const createGigData = (date, artist) => {
-  return {
-    date,
-    artistId: artist.id,
-    artistName: artist.name,
-  };
-};
-
-const addGigToLocalStorage = (gigData) => {
-  const existingData = JSON.parse(localStorage.getItem("gigDataList") || "[]");
-  existingData.push(gigData);
-  localStorage.setItem("gigDataList", JSON.stringify(existingData));
-  return existingData;
+  if (!date) {
+    alert("日付を選択してください");
+    return false;
+  }
+  if (!artist.id || !artist.name) {
+    alert("アーティストを選択してください");
+    return false;
+  }
+  return true;
 };
 
 const hideModal = () => {
@@ -186,7 +163,12 @@ const hideModal = () => {
   }
 };
 
-const storeGigInfo = () => {
+const storeGigInfo = async () => {
+  if (!user.value) {
+    alert("ログインが必要です");
+    return;
+  }
+
   const date = getGigDate();
   const artist = selectedArtist.value;
 
@@ -195,14 +177,34 @@ const storeGigInfo = () => {
     return;
   }
 
-  const gigData = createGigData(date, artist);
-  const updatedGigList = addGigToLocalStorage(gigData);
+  isLoading.value = true;
 
-  hideModal();
+  try {
+    const { data, error } = await client
+      .from("gigs")
+      .insert({
+        user_id: user.value.id,
+        gig_date: date,
+        artist_id: artist.id,
+        artist_name: artist.name,
+      })
+      .select();
 
-  calendarRef.value?.renderCalendar();
+    if (error) throw error;
 
-  console.log("保存されたgig情報:", gigData);
+    hideModal();
+    calendarRef.value?.renderCalendar();
+    selectedArtist.value = { id: null, name: null };
+    
+    // 入力欄リセット
+    resetArtistInput.value = true;
+    setTimeout(() => (resetArtistInput.value = false), 100); // 再利用可能にするため一瞬で戻す
+  } catch (error) {
+    console.error("Supabase insert error:", error);
+    alert(DB_ERRORS[error.code] || DB_ERRORS["default"]);
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 const signOut = async () => {
@@ -231,6 +233,8 @@ const signOut = async () => {
     @closeModal="hideModal"
     @submit="storeGigInfo"
     @artistSelected="handleSelectedArtist"
+    :isLoading="isLoading"
+    :resetArtistInput="resetArtistInput"
   />
   <GigDetailModal
     v-if="showGigDetailModal"

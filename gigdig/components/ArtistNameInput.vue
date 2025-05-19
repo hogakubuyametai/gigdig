@@ -1,10 +1,20 @@
 <script setup>
-import { id } from '@nuxt/ui/runtime/locale/index.js';
+const props = defineProps({
+  reset: Boolean, // 親から渡されるリセット用フラグ
+});
 
-const emit = defineEmits(['selectedArtist']);
+watch(() => props.reset, (newVal) => {
+  if (newVal) {
+    inputArtistName.value = "";
+    selectedArtistId.value = null;
+    artists.value = [];
+  }
+});
 
-const emitSelectedArtist = (artist) => {
- emit('selectedArtist', artist);
+const emit = defineEmits(['artistSelected']);
+
+const emitArtistSelected = (artist) => {
+ emit('artistSelected', artist);
 };
 
 const artists = ref([]);
@@ -50,33 +60,16 @@ const setArtistName = (artist) => {
   inputArtistName.value = artist.name;
   selectedArtistId.value = artist.id;
 
-  emitSelectedArtist({id: artist.id, name: artist.name});
+  emitArtistSelected({id: artist.id, name: artist.name});
 
   console.log(selectedArtistId.value);
   artists.value = [];
 };
 
-const storeArtistId = (artistId) => {
-  localStorage.setItem("artistId", selectedArtistId.value);
-  console.log("localStorageに保存されたartistId:", artistId);
-};
 
-const fetchTopTracks = async (artistId) => {
-  try {
-    const data = await getArtistTopTracks(artistId);
-    console.log(data);
-    topTracks.value = data;
-    console.log("getArtistTopTracks の結果:", topTracks.value);
-  } catch (error) {
-    console.error("getTopTracks error:", error);
-  }
-};
 </script>
 
 <template>
-  <!-- <div class="max-w-4xl mx-auto"> -->
-  <!-- <form @submit.prevent="submitArtistName"> -->
-  <!-- <div class="flex gap-4"> -->
   <div class="w-full">
     <input
       v-model="inputArtistName"
@@ -100,10 +93,7 @@ const fetchTopTracks = async (artistId) => {
       </li>
     </ul>
   </div>
-  <!-- <button @click="fetchTopTracks(selectedArtistId)" type="submit" class="bg-blue-400 px-4 py-2 cursor-pointer rounded-md text-white">submit</button> -->
-  <!-- </div> -->
 
-  <!-- </form> -->
   <ul v-if="topTracks.length > 0">
     <li v-for="topTrack in topTracks" :key="topTrack.id">
       {{ topTrack.name }}
@@ -121,6 +111,5 @@ const fetchTopTracks = async (artistId) => {
       style="border-radius: 12px"
     >
     </iframe>
-    <!-- </div> -->
   </div>
 </template>

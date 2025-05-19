@@ -10,6 +10,9 @@ const month = ref(today.getMonth());
 const calendarTitle = ref('');
 const calendarBody = ref(null);
 
+const user = useSupabaseUser();
+const client = useSupabaseClient();
+
 function getCalendarHead() {
   const dates = [];
   const d = new Date(year.value, month.value, 0).getDate();
@@ -61,13 +64,20 @@ function getCalendarTail() {
   return dates;
 }
 
-const loadGigDataList = () => {
-  return JSON.parse(
-    localStorage.getItem('gigDataList') || '[]'
-  );
+const fetchGigDataList = async () => {
+  const { data, error } = await client
+    .from('gigs')
+    .select('gig_date, artist_id, artist_name')
+    .eq('user_id', user.value.id);
+
+  if (error) {
+    console.error('Error fetching gig data:', error);
+    return [];
+  }
+  return data;
 }
 
-function renderCalendar() {
+const renderCalendar = async () => {
   const head = getCalendarHead();
   const body = getCalendarBodyDays();
   const tail = getCalendarTail();
@@ -75,7 +85,8 @@ function renderCalendar() {
   const weeks = [];
   const weeksCount = dates.length / 7;
 
-  const gigs = loadGigDataList();
+  const gigs = await fetchGigDataList();
+  console.log('Fetched gigs:', gigs);
 
   calendarTitle.value = `${year.value}/${String(month.value + 1).padStart(
     2,
@@ -101,19 +112,19 @@ function renderCalendar() {
         const selectedDate = new Date(year.value, date.month, date.date + 1).toISOString().slice(0, 10); // YYYY-MM-DD
 
         //ライブ情報を表示
-        const gigsOnThisDay = gigs.filter((gig) => gig.date === selectedDate);
+        const gigsOnThisDay = gigs.filter((gig) => gig.gig_date === selectedDate);
         gigsOnThisDay.forEach((gig) => {
           const gigLabel = document.createElement('div');
-          gigLabel.textContent = gig.artistName;
+          gigLabel.textContent = gig.artist_name;
           gigLabel.classList.add('gig-label');
 
           gigLabel.addEventListener('click', (event) => {
             event.stopPropagation();
             
             emit('show-gig-detail', {
-              date: gig.date,
-              artistId: gig.artistId,
-              artistName: gig.artistName,
+              date: gig.gig_date,
+              artistId: gig.artist_id,
+              artistName: gig.artist_name,
             });
           });
           div.appendChild(gigLabel);
@@ -123,15 +134,10 @@ function renderCalendar() {
           const addGigModal = document.getElementById('add-gig-modal');
           const gigDateInput = document.getElementById('gig-date');
 
-          // const selectedDate = new Date(year.value, date.month, date.date + 1);
-          // const formattedDate = selectedDate.toISOString().slice(0, 10); // YYYY-MM-DD
-
           if (addGigModal && gigDateInput) {
             addGigModal.classList.remove('hidden');
             gigDateInput.value = selectedDate;
           }
-
-          // console.log('選択された日付:', formattedDate);
         });
 
         if (date.isToday) {
