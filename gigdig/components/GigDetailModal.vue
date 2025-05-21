@@ -13,15 +13,15 @@ const handleCloseModal = () => {
   emit("closeModal");
 };
 
-const fetchTopTracks = async (artistId) => {
-  try {
-    const data = await getArtistTopTracks(artistId);
-    topTracks.value = data;
-    console.log("getArtistTopTracks の結果:", topTracks.value);
-  } catch (error) {
-    console.error("getTopTracks error:", error);
-  }
-};
+// const fetchTopTracks = async (artistId) => {
+//   try {
+//     const data = await getArtistTopTracks(artistId);
+//     topTracks.value = data;
+//     console.log("getArtistTopTracks の結果:", topTracks.value);
+//   } catch (error) {
+//     console.error("getTopTracks error:", error);
+//   }
+// };
 
 // props.gig の変更を監視してローカル gig に反映 & 日付整形
 watch(
@@ -35,9 +35,9 @@ watch(
       }
       gig.value = copied;
 
-      if (copied.artistId) {
-        fetchTopTracks(copied.artistId);
-      }
+      // if (copied.artistId) {
+      //   fetchTopTracks(copied.artistId);
+      // }
     }
   },
   { immediate: true }
@@ -85,7 +85,7 @@ watch(
           style="scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;"
         >
           <div
-            v-for="topTrack in topTracks"
+            v-for="topTrack in gig.topTracks"
             :key="topTrack.id"
             class="rounded-lg overflow-hidden shadow-sm"
           >
