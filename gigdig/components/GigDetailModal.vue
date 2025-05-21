@@ -85,13 +85,13 @@ watch(
           style="scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;"
         >
           <div
-            v-for="topTrack in gig.topTracks"
-            :key="topTrack.id"
+            v-for="topTrackId in gig.topTrackIds"
+            :key="topTrackId"
             class="rounded-lg overflow-hidden shadow-sm"
           >
             <iframe
-              v-if="topTrack.id"
-              :src="`https://open.spotify.com/embed/track/${topTrack.id}`"
+              v-if="topTrackId"
+              :src="`https://open.spotify.com/embed/track/${topTrackId}`"
               width="100%"
               height="80"
               frameborder="0"

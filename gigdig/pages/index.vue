@@ -68,12 +68,12 @@ const DB_ERRORS = {
 const handleShowGigDetail = async (gigInfo) => {
   const artistData = await getArtistData(gigInfo.artistId);
   const artistImageUrl = artistData.artistImageUrl;
-  const topTracks = artistData.topTracks;
+  const topTrackIds = artistData.topTrackIds;
 
   selectedGig.value = {
     ...gigInfo,
     artistImageUrl,
-    topTracks,
+    topTrackIds,
   };
   showGigDetailModal.value = true;
 };
