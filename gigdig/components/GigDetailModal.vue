@@ -1,43 +1,56 @@
 <script setup>
+import { ref, onMounted } from 'vue';
+
 const props = defineProps({
   gig: Object,
 });
 
 const emit = defineEmits(["closeModal"]);
-
 const gig = ref(props.gig ? JSON.parse(JSON.stringify(props.gig)) : {});
+const visibleTracks = ref(new Set());
+const loadedTracks = ref(new Set());
 
-const topTracks = ref([]);
+// Intersection Observerの設定
+onMounted(() => {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const trackId = entry.target.dataset.trackId;
+        visibleTracks.value.add(trackId);
+      }
+    });
+  }, {
+    root: null,
+    rootMargin: '50px',
+    threshold: 0.1
+  });
+
+  // トラックの要素を監視
+  setTimeout(() => {
+    document.querySelectorAll('.track-container').forEach(el => {
+      observer.observe(el);
+    });
+  }, 100);
+});
+
+// iframeの読み込み完了を追跡
+const handleTrackLoaded = (trackId) => {
+  loadedTracks.value.add(trackId);
+};
 
 const handleCloseModal = () => {
   emit("closeModal");
 };
 
-const fetchTopTracks = async (artistId) => {
-  try {
-    const data = await getArtistTopTracks(artistId);
-    topTracks.value = data;
-    console.log("getArtistTopTracks の結果:", topTracks.value);
-  } catch (error) {
-    console.error("getTopTracks error:", error);
-  }
-};
-
-// props.gig の変更を監視してローカル gig に反映 & 日付整形
 watch(
   () => props.gig,
   (newGig) => {
     if (newGig) {
       const copied = JSON.parse(JSON.stringify(newGig));
-      // 日付を yyyy/mm/dd に変換
       if (copied.date) {
         copied.date = copied.date.replace(/-/g, "/");
       }
       gig.value = copied;
-
-      if (copied.artistId) {
-        fetchTopTracks(copied.artistId);
-      }
     }
   },
   { immediate: true }
@@ -50,13 +63,13 @@ watch(
     class="max-w-4xl w-full mx-auto mt-4 rounded-2xl border border-gray-300 shadow-lg absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white overflow-hidden"
   >
     <!-- アーティスト画像（ヘッダー） -->
-    <div v-if="gig.artistImageUrl" class="relative h-72 w-full">
+    <div v-if="gig.artistImageUrl" class="relative h-72 w-full bg-gray-400/40">
       <img
         :src="gig.artistImageUrl"
         alt="Artist image"
-        class="object-cover w-full h-full"
+        class="object-contain w-full h-full"
       />
-      <div class="absolute inset-0 bg-black/50 flex flex-col-reverse">
+      <div class="absolute inset-0 flex flex-col-reverse">
         <h2 class="text-white text-4xl font-bold drop-shadow-md ml-4 mb-4">
           {{ gig.artistName }}
         </h2>
@@ -85,19 +98,27 @@ watch(
           style="scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;"
         >
           <div
-            v-for="topTrack in topTracks"
-            :key="topTrack.id"
-            class="rounded-lg overflow-hidden shadow-sm"
+            v-for="topTrackId in gig.topTrackIds"
+            :key="topTrackId"
+            :data-track-id="topTrackId"
+            class="track-container overflow-hidden h-20"
           >
+            <!-- スケルトンローディング -->
+            <div
+              v-if="!loadedTracks.has(topTrackId)"
+              class="bg-gray-200 animate-pulse w-full h-full rounded-xl"
+            ></div>
+
             <iframe
-              v-if="topTrack.id"
-              :src="`https://open.spotify.com/embed/track/${topTrack.id}`"
+              v-if="visibleTracks.has(topTrackId)"
+              :src="`https://open.spotify.com/embed/track/${topTrackId}`"
               width="100%"
               height="80"
               frameborder="0"
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
               loading="lazy"
-              style="border-radius: 12px"
+              class="rounded-xl"
+              @load="handleTrackLoaded(topTrackId)"
             />
           </div>
         </div>
@@ -105,7 +126,6 @@ watch(
     </div>
   </div>
 </template>
-
 
 <style scoped>
 /* スクロールバーのスタイルをカスタマイズ（Webkit系のみ） */

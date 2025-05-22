@@ -1,6 +1,11 @@
 <script setup>
+import { useArtistCache } from "~/composables/useArtistCache";
+
+const { getArtistData } = useArtistCache();
+
 const user = useSupabaseUser();
 const client = useSupabaseClient();
+
 
 const { data: userData } = await useAsyncData(
   "userData",
@@ -30,14 +35,6 @@ const { data: userData } = await useAsyncData(
 
 const userName = computed(() => userData.value?.userName || "");
 
-// const artists = ref([]);
-// const inputArtistName = ref("");
-// const selectedArtistId = ref(null);
-// const topTracks = ref([]);
-// const debounceTimeout = ref(null);
-// const debounceDelay = 300;
-// const isSelecting = ref(false);
-
 const selectedArtist = ref({ id: null, name: null });
 
 const calendarRef = ref();
@@ -57,74 +54,29 @@ const DB_ERRORS = {
   default: "データの保存に失敗しました。時間をおいて再度お試しください。",
 };
 
-const fetchArtistImageUrl = async (artistId) => {
-  try {
-    const data = await getArtistDetails(artistId);
-    const artistImageUrl = data.images[0]?.url || "";
-    console.log("artistImageUrl:", artistImageUrl);
-    return artistImageUrl;
-  } catch (error) {
-    console.error("getArtistDetails error:", error);
-  }
-};
+// const fetchArtistImageUrl = async (artistId) => {
+//   try {
+//     const data = await getArtistDetails(artistId);
+//     const artistImageUrl = data.images[0]?.url || "";
+//     console.log("artistImageUrl:", artistImageUrl);
+//     return artistImageUrl;
+//   } catch (error) {
+//     console.error("getArtistDetails error:", error);
+//   }
+// };
 
 const handleShowGigDetail = async (gigInfo) => {
-  const artistImageUrl = await fetchArtistImageUrl(gigInfo.artistId);
+  const artistData = await getArtistData(gigInfo.artistId);
+  const artistImageUrl = artistData.artistImageUrl;
+  const topTrackIds = artistData.topTrackIds;
+
   selectedGig.value = {
     ...gigInfo,
     artistImageUrl,
+    topTrackIds,
   };
   showGigDetailModal.value = true;
 };
-
-// const fetchArtists = async (input) => {
-//   try {
-//     const data = await searchArtists(input);
-//     console.log("searchArtists の結果:", data);
-//     artists.value = data;
-//   } catch (error) {
-//     console.error("artist search error:", error);
-//   }
-// };
-
-// watch(inputArtistName, (newValue) => {
-//   if (isSelecting.value) {
-//     isSelecting.value = false;
-//     return;
-//   }
-
-//   if (debounceTimeout.value) {
-//     clearTimeout(debounceTimeout.value);
-//   }
-
-//   debounceTimeout.value = setTimeout(() => {
-//     if (!newValue) {
-//       artists.value = [];
-//       return;
-//     }
-//     fetchArtists(newValue);
-//     debounceTimeout.value = null;
-//   }, debounceDelay);
-// });
-
-// const setArtistName = (artist) => {
-//   isSelecting.value = true;
-//   inputArtistName.value = artist.name;
-//   selectedArtistId.value = artist.id;
-//   console.log(selectedArtistId.value);
-//   artists.value = [];
-// };
-
-// const fetchTopTracks = async (artistId) => {
-//   try {
-//     const data = await getArtistTopTracks(artistId);
-//     console.log(data);
-//     topTracks.value = data;
-//     console.log("getArtistTopTracks の結果:", topTracks.value);
-//   } catch (error) {
-//     console.error("getTopTracks error:", error);
-//   }
-// };
 
 const handleSelectedArtist = (artist) => {
   selectedArtist.value = artist;
