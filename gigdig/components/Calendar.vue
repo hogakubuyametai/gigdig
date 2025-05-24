@@ -1,20 +1,27 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useGigData } from '~/composables/useGigData';
+import { ref, onMounted } from "vue";
+import { useGigData } from "~/composables/useGigData";
 
-const emit = defineEmits(['show-gig-detail']);
+const emit = defineEmits(["show-gig-detail"]);
 
-const { getGigList } = useGigData();
+const { getGigList, deleteGigData } = useGigData();
 
 const today = new Date();
 const year = ref(today.getFullYear());
 const month = ref(today.getMonth());
 
-const calendarTitle = ref('');
+const calendarTitle = ref("");
 const calendarBody = ref(null);
 
 const user = useSupabaseUser();
 const client = useSupabaseClient();
+
+const contextMenu = ref({
+  visible: false,
+  x: 0,
+  y: 0,
+  gig: null,
+});
 
 function getCalendarHead() {
   const dates = [];
@@ -69,10 +76,10 @@ function getCalendarTail() {
 
 const fetchGigDataList = async () => {
   if (!user.value) return [];
-  
+
   const result = await getGigList(user.value.id, client);
   return result.success ? result.data : [];
-}
+};
 
 const renderCalendar = async () => {
   const head = getCalendarHead();
@@ -83,11 +90,11 @@ const renderCalendar = async () => {
   const weeksCount = dates.length / 7;
 
   const gigs = await fetchGigDataList();
-  console.log('Fetched gigs:', gigs);
+  console.log("Fetched gigs:", gigs);
 
   calendarTitle.value = `${year.value}/${String(month.value + 1).padStart(
     2,
-    '0'
+    "0"
   )}`;
 
   // まずは既存のtbodyの中身をクリア
@@ -98,50 +105,82 @@ const renderCalendar = async () => {
     // 新しい週の要素を作成して追加
     for (let i = 0; i < weeksCount; i++) {
       const week = dates.splice(0, 7);
-      const tr = document.createElement('tr');
+      const tr = document.createElement("tr");
 
       week.forEach((date) => {
-        const td = document.createElement('td');
-        const div = document.createElement('div');
-        div.classList.add('calendar-cell');
+        const td = document.createElement("td");
+        const div = document.createElement("div");
+        div.classList.add("calendar-cell");
         div.textContent = date.date;
 
-        const selectedDate = new Date(year.value, date.month, date.date + 1).toISOString().slice(0, 10); // YYYY-MM-DD
+        const selectedDate = new Date(year.value, date.month, date.date + 1)
+          .toISOString()
+          .slice(0, 10); // YYYY-MM-DD
 
         //ライブ情報を表示
-        const gigsOnThisDay = gigs.filter((gig) => gig.gig_date === selectedDate);
+        const gigsOnThisDay = gigs.filter(
+          (gig) => gig.gig_date === selectedDate
+        );
         gigsOnThisDay.forEach((gig) => {
-          const gigLabel = document.createElement('div');
+          const gigLabel = document.createElement("div");
           gigLabel.textContent = gig.artist_name;
-          gigLabel.classList.add('gig-label');
+          gigLabel.classList.add("gig-label");
+          
+          let longPressTimer = null;
+          let isLongPress = false;
+          
+          gigLabel.addEventListener('touchstart', (event) => {
+            isLongPress = false;
+            longPressTimer = setTimeout(() => {
+              isLongPress = true;
+              showContextMenu(event.touches[0], gig);
+            }, 500); // 500msでロングプレスとみなす
+          });
+          
+          gigLabel.addEventListener('touchend', () => {
+            clearTimeout(longPressTimer);
+          });
+          
+          gigLabel.addEventListener('touchmove', () => {
+            clearTimeout(longPressTimer);
+          });
+          
+          
+          gigLabel.addEventListener("click", (event) => {
+            if(!isLongPress) {
+              event.stopPropagation();
+  
+              emit("show-gig-detail", {
+                id: gig.id,
+                date: gig.gig_date,
+                artistId: gig.artist_id,
+                artistName: gig.artist_name,
+              });
+            }
+          });
 
-          gigLabel.addEventListener('click', (event) => {
-            event.stopPropagation();
-            
-            emit('show-gig-detail', {
-              date: gig.gig_date,
-              artistId: gig.artist_id,
-              artistName: gig.artist_name,
-            });
+
+          gigLabel.addEventListener("contextmenu", (event) => {
+           showContextMenu(event, gig);
           });
           div.appendChild(gigLabel);
         });
 
-        div.addEventListener('click', () => {
-          const addGigModal = document.getElementById('add-gig-modal');
-          const gigDateInput = document.getElementById('gig-date');
+        div.addEventListener("click", () => {
+          const addGigModal = document.getElementById("add-gig-modal");
+          const gigDateInput = document.getElementById("gig-date");
 
           if (addGigModal && gigDateInput) {
-            addGigModal.classList.remove('hidden');
+            addGigModal.classList.remove("hidden");
             gigDateInput.value = selectedDate;
           }
         });
 
         if (date.isToday) {
-          div.classList.add('today');
+          div.classList.add("today");
         }
         if (date.isDisabled) {
-          div.classList.add('disabled');
+          div.classList.add("disabled");
         }
         tr.appendChild(td);
         td.appendChild(div);
@@ -149,7 +188,7 @@ const renderCalendar = async () => {
       calendarBody.value.appendChild(tr);
     }
   }
-}
+};
 
 defineExpose({
   renderCalendar,
@@ -183,30 +222,78 @@ const goToToday = () => {
   renderCalendar();
 };
 
+const handleDeleteGig = async (gig) => {
+  if (confirm(`${gig.artist_name}のGigを削除しますか？`)) {
+    const result = await deleteGigData(gig.id, client);
+    if (result.success) {
+      renderCalendar();
+    } else {
+      alert(`削除に失敗しました: ${result.message}`);
+    }
+  }
+};
+
+const closeContextMenu = () => {
+  contextMenu.value.visible = false;
+  contextMenu.value.x = 0;
+  contextMenu.value.y = 0;
+  contextMenu.value.gig = null;
+};
+
+const showContextMenu = (eventOrTouch, gig) => {
+  if (eventOrTouch && typeof eventOrTouch.preventDefault === 'function') {
+    eventOrTouch.preventDefault();
+  }
+
+  contextMenu.value = {
+    visible: true,
+    x: eventOrTouch.clientX + 10 || eventOrTouch.pageX + 10, // 少し右にずらす
+    y: eventOrTouch.clientY + 10 || eventOrTouch.pageY + 10, // 少し下にずらす
+    gig: gig
+  };
+};
 </script>
 
 <template>
   <div class="px-4 max-w-5xl mx-auto">
     <div class="flex items-center gap-5 mt-8 mb-4">
-  <!-- Today ボタン -->
-  <button
-    @click="goToToday"
-    class="text-sm px-4 py-1 border border-gray-400 rounded-full hover:bg-gray-100 transition cursor-pointer"
-  >
-    Today
-  </button>
+      <!-- Today ボタン -->
+      <button
+        @click="goToToday"
+        class="text-sm px-4 py-1 border border-gray-400 rounded-full hover:bg-gray-100 transition cursor-pointer"
+      >
+        Today
+      </button>
 
-  <!-- < > ボタン -->
-  <button @click="prevMonth" class="text-xl hover:text-gray-600 transition cursor-pointer">&lt;</button>
-  <button @click="nextMonth" class="text-xl hover:text-gray-600 transition cursor-pointer">&gt;</button>
+      <!-- < > ボタン -->
+      <button
+        @click="prevMonth"
+        class="text-xl hover:text-gray-600 transition cursor-pointer"
+      >
+        &lt;
+      </button>
+      <button
+        @click="nextMonth"
+        class="text-xl hover:text-gray-600 transition cursor-pointer"
+      >
+        &gt;
+      </button>
 
-  <!-- yyyy/mm -->
-  <h2 class="text-2xl font-sans ml-2">{{ calendarTitle }}</h2>
-</div>
+      <!-- yyyy/mm -->
+      <h2 class="text-2xl font-sans ml-2">{{ calendarTitle }}</h2>
+    </div>
 
     <!-- 曜日 -->
-    <div class="grid grid-cols-7 text-center text-sm text-gray-500 border-b pb-2 mb-2 font-sans">
-      <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+    <div
+      class="grid grid-cols-7 text-center text-sm text-gray-500 border-b pb-2 mb-2 font-sans"
+    >
+      <div>Sun</div>
+      <div>Mon</div>
+      <div>Tue</div>
+      <div>Wed</div>
+      <div>Thu</div>
+      <div>Fri</div>
+      <div>Sat</div>
     </div>
 
     <!-- カレンダー本体 -->
@@ -215,13 +302,19 @@ const goToToday = () => {
         <!-- JavaScriptで描画 -->
       </tbody>
     </table>
+    <ContextMenu
+      :visible="contextMenu.visible"
+      :x="contextMenu.x"
+      :y="contextMenu.y"
+      :gig="contextMenu.gig"
+      @deleteGig="handleDeleteGig"
+      @closeContextMenu="closeContextMenu"
+    />
   </div>
 </template>
 
-
-
 <style>
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @tailwind utilities;
 
@@ -263,5 +356,4 @@ const goToToday = () => {
     @apply text-blue-500;
   }
 }
-
 </style>
