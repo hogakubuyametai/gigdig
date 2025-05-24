@@ -1,4 +1,8 @@
 <script setup>
+import { useSpotifyData } from '~/composables/useSpotifyData';
+
+const { searchResults, isSearching, searchArtists } = useSpotifyData();
+
 const props = defineProps({
   reset: Boolean, // 親から渡されるリセット用フラグ
 });
@@ -7,7 +11,7 @@ watch(() => props.reset, (newVal) => {
   if (newVal) {
     inputArtistName.value = "";
     selectedArtistId.value = null;
-    artists.value = [];
+    searchResults.value = [];
   }
 });
 
@@ -17,23 +21,11 @@ const emitArtistSelected = (artist) => {
  emit('artistSelected', artist);
 };
 
-const artists = ref([]);
+
 const inputArtistName = ref("");
 const selectedArtistId = ref(null);
-const topTracks = ref([]);
-const debounceTimeout = ref(null);
-const debounceDelay = 300;
-const isSelecting = ref(false);
 
-const fetchArtists = async (input) => {
-  try {
-    const data = await searchArtists(input);
-    console.log("searchArtists の結果:", data);
-    artists.value = data;
-  } catch (error) {
-    console.error("artist search error:", error);
-  }
-};
+const isSelecting = ref(false);
 
 watch(inputArtistName, (newValue) => {
   if (isSelecting.value) {
@@ -41,18 +33,7 @@ watch(inputArtistName, (newValue) => {
     return;
   }
 
-  if (debounceTimeout.value) {
-    clearTimeout(debounceTimeout.value);
-  }
-
-  debounceTimeout.value = setTimeout(() => {
-    if (!newValue) {
-      artists.value = [];
-      return;
-    }
-    fetchArtists(newValue);
-    debounceTimeout.value = null;
-  }, debounceDelay);
+  searchArtists(newValue);
 });
 
 const setArtistName = (artist) => {
@@ -63,7 +44,7 @@ const setArtistName = (artist) => {
   emitArtistSelected({id: artist.id, name: artist.name});
 
   console.log(selectedArtistId.value);
-  artists.value = [];
+  searchResults.value = [];
 };
 
 
@@ -80,11 +61,11 @@ const setArtistName = (artist) => {
       placeholder="Search artists"
     />
     <ul
-      v-if="artists.length > 0"
+      v-if="searchResults.length > 0"
       class="bg-white border border-[#e2e8f0] rounded-md w-full shadow border-t-0"
     >
       <li
-        v-for="artist in artists"
+        v-for="artist in searchResults"
         :key="artist.id"
         @click="setArtistName(artist)"
         class="cursor-pointer hover:bg-gray-50/90"
@@ -92,24 +73,5 @@ const setArtistName = (artist) => {
         {{ artist.name }}
       </li>
     </ul>
-  </div>
-
-  <ul v-if="topTracks.length > 0">
-    <li v-for="topTrack in topTracks" :key="topTrack.id">
-      {{ topTrack.name }}
-    </li>
-  </ul>
-  <div v-for="topTrack in topTracks" :key="topTrack.id" class="mb-4 w-80">
-    <iframe
-      v-if="topTrack.id"
-      :src="`https://open.spotify.com/embed/track/${topTrack.id}`"
-      width="100%"
-      height="80"
-      frameborder="0"
-      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-      loading="lazy"
-      style="border-radius: 12px"
-    >
-    </iframe>
   </div>
 </template>
