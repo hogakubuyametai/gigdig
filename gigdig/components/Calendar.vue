@@ -5,7 +5,6 @@ import { useGigData } from '~/composables/useGigData';
 const emit = defineEmits(['show-gig-detail']);
 
 const { getGigList } = useGigData();
-console.log('getGigList:', getGigList);
 
 const today = new Date();
 const year = ref(today.getFullYear());
