@@ -1,7 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useGigData } from '~/composables/useGigData';
 
 const emit = defineEmits(['show-gig-detail']);
+
+const { getGigList } = useGigData();
+console.log('getGigList:', getGigList);
 
 const today = new Date();
 const year = ref(today.getFullYear());
@@ -65,16 +69,10 @@ function getCalendarTail() {
 }
 
 const fetchGigDataList = async () => {
-  const { data, error } = await client
-    .from('gigs')
-    .select('gig_date, artist_id, artist_name')
-    .eq('user_id', user.value.id);
-
-  if (error) {
-    console.error('Error fetching gig data:', error);
-    return [];
-  }
-  return data;
+  if (!user.value) return [];
+  
+  const result = await getGigList(user.value.id, client);
+  return result.success ? result.data : [];
 }
 
 const renderCalendar = async () => {

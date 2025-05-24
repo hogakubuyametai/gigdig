@@ -43,7 +43,25 @@ export const useGigData = () => {
       data: data,
     };
   }
+  
+  const getGigList = async (userId: string, client: any) => {
+    try{
+      const { data, error } = await client
+        .from('gigs')
+        .select('gig_date, artist_id, artist_name')
+        .eq('user_id', userId)
+
+      if (error) throw error;
+
+      return { success: true, data: data };
+    } catch (error) {
+      console.error('Error fetching gig list:', error);
+      return { success: false, error, data: []};
+    }
+  };
+
   return {
     saveGigData,
+    getGigList,
   };
-}
+};
