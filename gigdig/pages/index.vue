@@ -1,7 +1,9 @@
 <script setup>
 import { useArtistCache } from "~/composables/useArtistCache";
+import { useGigData } from "~/composables/useGigData";
 
 const { getArtistData } = useArtistCache();
+const { saveGigData } = useGigData();
 
 const user = useSupabaseUser();
 const client = useSupabaseClient();
@@ -45,25 +47,6 @@ const selectedGig = ref(null);
 const isLoading = ref(false);
 
 const resetArtistInput = ref(false);
-
-// エラー種別の定数定義を追加
-const DB_ERRORS = {
-  42501: "アクセス権限がありません。再度ログインしてください。",
-  23505: "同じ日付のGigが既に登録されています。",
-  23503: "ユーザー情報が見つかりません。",
-  default: "データの保存に失敗しました。時間をおいて再度お試しください。",
-};
-
-// const fetchArtistImageUrl = async (artistId) => {
-//   try {
-//     const data = await getArtistDetails(artistId);
-//     const artistImageUrl = data.images[0]?.url || "";
-//     console.log("artistImageUrl:", artistImageUrl);
-//     return artistImageUrl;
-//   } catch (error) {
-//     console.error("getArtistDetails error:", error);
-//   }
-// };
 
 const handleShowGigDetail = async (gigInfo) => {
   const artistData = await getArtistData(gigInfo.artistId);
@@ -131,32 +114,29 @@ const storeGigInfo = async () => {
 
   isLoading.value = true;
 
-  try {
-    const { data, error } = await client
-      .from("gigs")
-      .insert({
-        user_id: user.value.id,
-        gig_date: date,
-        artist_id: artist.id,
-        artist_name: artist.name,
-      })
-      .select();
+  const gigData = {
+    userId: user.value.id,
+    date: date,
+    artistId: artist.id,
+    artistName: artist.name,
+  };
 
-    if (error) throw error;
+  // Supabaseにデータを保存
+  const result = await saveGigData(gigData, client);
 
+  if (result.success) {
     hideModal();
     calendarRef.value?.renderCalendar();
     selectedArtist.value = { id: null, name: null };
-    
     // 入力欄リセット
     resetArtistInput.value = true;
     setTimeout(() => (resetArtistInput.value = false), 100); // 再利用可能にするため一瞬で戻す
-  } catch (error) {
-    console.error("Supabase insert error:", error);
-    alert(DB_ERRORS[error.code] || DB_ERRORS["default"]);
-  } finally {
-    isLoading.value = false;
+  } else {
+    console.error('Supabase insert error:', result.message);
+    alert(result.message);
   }
+
+  isLoading.value = false;
 };
 
 const signOut = async () => {
