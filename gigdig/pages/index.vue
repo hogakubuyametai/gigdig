@@ -147,6 +147,11 @@ const signOut = async () => {
     navigateTo({ path: "/login" });
   }
 };
+
+const handleGigUpdated = () => {
+  calendarRef.value?.renderCalendar();
+};
+
 </script>
 <template>
   <div v-if="userName" class="ml-4 mt-4 flex justify-between">
@@ -172,5 +177,6 @@ const signOut = async () => {
     v-if="showGigDetailModal"
     :gig="selectedGig"
     @closeModal="showGigDetailModal = false"
+    @gigUpdated="handleGigUpdated"
   />
 </template>

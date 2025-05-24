@@ -48,7 +48,7 @@ export const useGigData = () => {
     try{
       const { data, error } = await client
         .from('gigs')
-        .select('gig_date, artist_id, artist_name')
+        .select('id,gig_date, artist_id, artist_name')
         .eq('user_id', userId)
 
       if (error) throw error;
@@ -60,8 +60,46 @@ export const useGigData = () => {
     }
   };
 
+  const deleteGigData = async (gigId: string, client: any) => {
+    try {
+      const { data, error } = await client
+        .from('gigs')
+        .delete()
+        .eq('id', gigId)
+
+      if (error) throw error;
+      return { success: true, data: data };
+    } catch (error) {
+      console.error('Error deleting gig:', error);
+      return { success: false, error, data: [] };
+    }
+  };
+
+  const updateGigData = async (gigId: string, gigData: GigData, client: any) => {
+    try {
+      console.log('updateGigData called with:', gigId, gigData); // 追加
+      const { data, error } = await client
+        .from('gigs')
+        .update({
+          gig_date: gigData.date,
+          artist_id: gigData.artistId,
+          artist_name: gigData.artistName,
+        })
+        .eq('id', gigId)
+        .single();
+
+      if (error) throw error;
+      return { success: true, data: data };
+    } catch (error) {
+      console.error('Error updating gig:', error);
+      return { success: false, error, data: [] };
+    }
+  };
+
   return {
     saveGigData,
     getGigList,
+    deleteGigData,
+    updateGigData,
   };
 };

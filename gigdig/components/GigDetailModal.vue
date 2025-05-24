@@ -1,14 +1,24 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useGigData } from '~/composables/useGigData';
 
 const props = defineProps({
   gig: Object,
 });
 
+const user = useSupabaseUser();
+const client = useSupabaseClient();
+
 const emit = defineEmits(["closeModal"]);
 const gig = ref(props.gig ? JSON.parse(JSON.stringify(props.gig)) : {});
 const visibleTracks = ref(new Set());
 const loadedTracks = ref(new Set());
+
+const { updateGigData } = useGigData();
+
+const isEditingDate = ref(false);
+const editingDate = ref('');
+const originalDate = ref(gig.value.date || "");
 
 // Intersection Observerの設定
 onMounted(() => {
@@ -55,6 +65,46 @@ watch(
   },
   { immediate: true }
 );
+
+const startEditing = () => {
+  originalDate.value = gig.value.date;
+  editingDate.value = gig.value.date.replace(/\//g, '-');
+  isEditingDate.value = true;
+};
+
+const saveDate = async () => {
+  if (!editingDate.value) {
+    alert("日付を選択してください");
+    return;
+  }
+
+  const editingGigData = {
+    userId: user.value.id,
+    date: editingDate.value,
+    artistId: gig.value.artistId,
+    artistName: gig.value.artistName,
+  }
+
+  // Supabaseに更新
+  const result = await updateGigData(gig.value.id, editingGigData, client);
+  
+  if (!result.success) {
+    console.error('Supabase update error:', result.error);
+    alert('日付の更新に失敗しました');
+  } else {
+    isEditingDate.value = false;
+    originalDate.value = editingDate.value;
+    gig.value.date = editingDate.value.replace(/-/g, "/");
+
+    emit('gigUpdated');
+  }
+};
+
+const cancelEdit = () => {
+  editingDate.value = originalDate.value;
+  isEditingDate.value = false;
+};
+
 </script>
 
 <template>
@@ -88,7 +138,35 @@ watch(
     <div class="p-6 text-gray-700">
       <div class="mb-4">
         <p class="text-sm font-semibold text-gray-500">Date</p>
-        <p class="text-lg">{{ gig.date }}</p>
+        <p 
+          v-if="!isEditingDate"
+          class="text-lg cursor-pointer border-b border-dashed border-gray-300 hover:border-blue-500 inline-flex items-center gap-2 transition-colors"
+          @click="startEditing"
+        >
+          {{ gig.date }}
+          <span class="text-gray-400 text-sm">📝</span>
+        </p>
+        <div
+          v-if="isEditingDate"
+          class="flex items-center gap-4 mt-2">
+          <input
+            v-model="editingDate"
+            type="date"
+            class="border rounded p-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            class="bg-blue-500 text-white rounded px-4 py-2 cursor-pointer hover:bg-blue-400 transition"
+            @click="saveDate"
+            >
+            Save
+          </button>
+          <button
+            class="bg-gray-300 rounded px-3 py-2 cursor-pointer hover:bg-gray-200 transition"
+            @click="cancelEdit"
+            >
+            Cancel
+          </button>
+        </div>
       </div>
 
       <div>
