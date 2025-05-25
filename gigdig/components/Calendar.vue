@@ -13,6 +13,8 @@ const month = ref(today.getMonth());
 const calendarTitle = ref("");
 const calendarBody = ref(null);
 
+const isLoading = ref(true);
+
 const user = useSupabaseUser();
 const client = useSupabaseClient();
 
@@ -82,6 +84,8 @@ const fetchGigDataList = async () => {
 };
 
 const renderCalendar = async () => {
+  isLoading.value = true;
+
   const head = getCalendarHead();
   const body = getCalendarBodyDays();
   const tail = getCalendarTail();
@@ -199,7 +203,7 @@ const renderCalendar = async () => {
             y: adjustedY,
             selectedDate: selectedDate,
           });
-          
+
           closeContextMenu();
         });
 
@@ -215,6 +219,7 @@ const renderCalendar = async () => {
       calendarBody.value.appendChild(tr);
     }
   }
+  isLoading.value = false;
 };
 
 defineExpose({
@@ -317,7 +322,8 @@ const showContextMenu = (eventOrTouch, gig) => {
         <!-- Today ボタン -->
         <button
           @click="goToToday"
-          class="text-sm px-3 py-2 sm:px-4 sm:py-1 border border-gray-400 rounded-full hover:bg-gray-100 transition cursor-pointer min-h-auto flex items-center"
+          :disabled="isLoading"
+          class="text-sm px-3 py-2 sm:px-4 sm:py-1 border border-gray-400 rounded-full hover:bg-gray-100 transition cursor-pointer min-h-auto flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Today
         </button>
@@ -343,7 +349,7 @@ const showContextMenu = (eventOrTouch, gig) => {
 
     <!-- 曜日 -->
     <div
-      class="grid grid-cols-7 text-center text-sm text-gray-500 border-b pb-2 mb-2 font-sans"
+      class="grid grid-cols-7 text-center text-xs sm:text-sm text-gray-500 border-b pb-2 mb-2 font-sans"
     >
       <div>Sun</div>
       <div>Mon</div>
@@ -360,6 +366,23 @@ const showContextMenu = (eventOrTouch, gig) => {
         <!-- JavaScriptで描画 -->
       </tbody>
     </table>
+
+    <!-- ローディング表示 -->
+    <div v-if="isLoading" class="w-full">
+      <div class="grid grid-rows-6 gap-px">
+        <div v-for="week in 5" class="grid grid-cols-7 gap-px">
+          <div v-for="day in 7" class="h-24 md:h-28 border border-gray-200 bg-gray-50 animate-pulse rounded-md">
+            <div class="p-2 h-full flex flex-col">
+              <!-- 日付のスケルトン -->
+              <div class="w-4 h-3 bg-gray-300 rounded animate-pulse mb-2"></div>
+              <!-- Gigラベルのスケルトン -->
+              <div class="w-12 h-4 bg-gray-300 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <ContextMenu
       :visible="contextMenu.visible"
       :x="contextMenu.x"
