@@ -183,7 +183,7 @@ const hideAddGigModal = () => {
             src="/logo_gigdig.svg"
             alt="GigDig"
             width="200"
-            height="auto"
+            height="69"
             loading="eager"
             class="w-32 sm:w-[200px] hover:opacity-80 transition-opacity duration-200"
           />
