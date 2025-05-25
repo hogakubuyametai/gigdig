@@ -1,6 +1,14 @@
 <script setup>
 const supabase = useSupabaseClient();
 const runtimeConfig = useRuntimeConfig();
+const user = useSupabaseUser();
+
+// 既にログインしている場合のリダイレクト
+watch(user, async (newUser) => {
+  if (newUser) {
+    await navigateTo('/');
+  }
+}, { immediate: true });
 
 const loginWithGoogle = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
