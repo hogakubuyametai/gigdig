@@ -17,7 +17,7 @@ if (typeof window !== 'undefined') {
         gigDataCache.set(id, data);
       }
     } catch (e) {
-      // console.warn('Failed to parse cache from sessionStorage:', e);
+      logger.warn('Failed to parse cache from sessionStorage:', e);
     }
   }
 }
