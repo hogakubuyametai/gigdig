@@ -46,7 +46,7 @@ onMounted(async () => {
       <div class="text-center">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
         <h2 class="text-xl font-semibold text-gray-700">Authenticating...</h2>
-        <p class="text-gray-500 mt-2">Plese wait a moment</p>
+        <p class="text-gray-500 mt-2">Please wait a moment</p>
       </div>
     </div>
   </div>
