@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
-@tailwind utilities;
-
 /* @layer utilities {
   td.disabled {
     @apply opacity-30;

@@ -11,6 +11,7 @@ export default defineNuxtConfig({
     'nuxt-primevue',
     '@nuxt/ui',
     '@nuxtjs/supabase',
+    '@nuxt/image'
   ],
   experimental: {
     asyncContext: true,

@@ -12,6 +12,7 @@
     "format": "eslint --fix . "
   },
   "dependencies": {
+    "@nuxt/image": "^1.10.0",
     "@nuxt/ui": "^3.1.1",
     "@nuxtjs/supabase": "^1.5.0",
     "@supabase/ssr": "^0.6.1",

@@ -51,27 +51,39 @@ const setArtistName = (artist) => {
 </script>
 
 <template>
-  <div class="w-full">
+  <div class="w-full relative">
     <input
       v-model="inputArtistName"
       type="text"
       id="search-artists"
       name="search-artists"
-      class="px-1 bg-white border border-[#cbd5e1] rounded-md shadow-sm focus:border-[#3b82f6] focus:ring-[#3b82f6] focus:ring-1 w-full"
-      placeholder="Search artists"
+      class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all duration-200 text-sm sm:text-base"
+      placeholder="Who's performing?"
     />
-    <ul
-      v-if="searchResults.length > 0"
-      class="bg-white border border-[#e2e8f0] rounded-md w-full shadow border-t-0"
+    
+    <!-- 検索結果リストのアニメーション -->
+    <Transition
+      name="dropdown"
+      enter-active-class="transition-all duration-200 ease-out"
+      leave-active-class="transition-all duration-150 ease-in"
+      enter-from-class="opacity-0 scale-95 -translate-y-2"
+      enter-to-class="opacity-100 scale-100 translate-y-0"
+      leave-from-class="opacity-100 scale-100 translate-y-0"
+      leave-to-class="opacity-0 scale-95 -translate-y-2"
     >
-      <li
-        v-for="artist in searchResults"
-        :key="artist.id"
-        @click="setArtistName(artist)"
-        class="cursor-pointer hover:bg-gray-50/90"
+      <ul
+        v-if="searchResults.length > 0"
+        class="absolute top-full left-0 z-10 bg-white border border-gray-300 rounded-md w-full shadow-lg mt-1 max-h-48 overflow-y-auto"
       >
-        {{ artist.name }}
-      </li>
-    </ul>
+        <li
+          v-for="artist in searchResults"
+          :key="artist.id"
+          @click="setArtistName(artist)"
+          class="px-3 py-2 cursor-pointer hover:bg-gray-100 transition-all duration-200 text-sm sm:text-base border-b border-gray-100 last:border-b-0 transform hover:scale-[102%]"
+        >
+          {{ artist.name }}
+        </li>
+      </ul>
+    </Transition>
   </div>
 </template>
