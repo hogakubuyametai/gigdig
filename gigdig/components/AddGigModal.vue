@@ -20,18 +20,18 @@ const emit = defineEmits(['closeModal', 'submit', 'artistSelected']);
 
 const handleCloseModal = () => {
   emit('closeModal');
-  console.log('closeModalが呼ばれました');
+  // console.log('closeModalが呼ばれました');
 };
 
 const handleSubmit = (event) => {
   event.preventDefault();
   emit('submit');
-  console.log('submitが呼ばれました');
+  // // console.log('submitが呼ばれました');
 };
 
 const handleSelectedArtist = (artist) => {
   emit('artistSelected', artist);
-  console.log('選択されたアーティスト:', artist);
+  // console.log('選択されたアーティスト:', artist);
 };
 
 </script>
