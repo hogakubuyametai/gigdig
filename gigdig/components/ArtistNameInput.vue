@@ -51,24 +51,24 @@ const setArtistName = (artist) => {
 </script>
 
 <template>
-  <div class="w-full">
+  <div class="w-full relative">
     <input
       v-model="inputArtistName"
       type="text"
       id="search-artists"
       name="search-artists"
-      class="px-1 bg-white border border-[#cbd5e1] rounded-md shadow-sm focus:border-[#3b82f6] focus:ring-[#3b82f6] focus:ring-1 w-full"
-      placeholder="Search artists"
+      class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-colors text-sm sm:text-base"
+      placeholder="Who's performing?"
     />
     <ul
       v-if="searchResults.length > 0"
-      class="bg-white border border-[#e2e8f0] rounded-md w-full shadow border-t-0"
+      class="absolute top-full left-0 z-10 bg-white border border-gray-300 rounded-md w-full shadow-lg mt-1 max-h-48 overflow-y-auto"
     >
       <li
         v-for="artist in searchResults"
         :key="artist.id"
         @click="setArtistName(artist)"
-        class="cursor-pointer hover:bg-gray-50/90"
+        class="px-3 py-2 cursor-pointer hover:bg-gray-100 transition-colors text-sm sm:text-base border-b border-gray-100 last:border-b-0"
       >
         {{ artist.name }}
       </li>

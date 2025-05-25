@@ -41,6 +41,11 @@ const selectedArtist = ref({ id: null, name: null });
 
 const calendarRef = ref();
 
+const showAddGigModal = ref(false);
+const addGigModalX = ref(0);
+const addGigModalY = ref(0);
+const selectedDate = ref('');
+
 const showGigDetailModal = ref(false);
 const selectedGig = ref(null);
 
@@ -108,7 +113,6 @@ const storeGigInfo = async () => {
   const artist = selectedArtist.value;
 
   if (!isValidGigInput(date, artist)) {
-    alert("日付またはアーティスト情報が不足しています。");
     return;
   }
 
@@ -152,6 +156,28 @@ const handleGigUpdated = () => {
   calendarRef.value?.renderCalendar();
 };
 
+const handleShowAddGigModal = (modalInfo) => {
+  console.log("Add Gig Modal Info:", modalInfo);
+  showAddGigModal.value = true;
+  addGigModalX.value = modalInfo.x;
+  addGigModalY.value = modalInfo.y;
+  selectedDate.value = modalInfo.selectedDate;
+
+  nextTick(() => {
+    const dateInput = document.getElementById("gig-date");
+    if (dateInput) {
+      dateInput.value = selectedDate.value;
+    }
+  });
+};
+
+const hideAddGigModal = () => {
+  showAddGigModal.value = false;
+  addGigModalX.value = 0;
+  addGigModalY.value = 0;
+  selectedDate.value = '';
+};
+
 </script>
 <template>
   <div v-if="userName" class="ml-4 mt-4 flex justify-between">
@@ -165,9 +191,12 @@ const handleGigUpdated = () => {
       </button>
     </div>
   </div>
-  <Calendar @show-gig-detail="handleShowGigDetail" ref="calendarRef" />
+  <Calendar @show-gig-detail="handleShowGigDetail" @show-add-gig-modal="handleShowAddGigModal" ref="calendarRef" />
   <AddGigModal
-    @closeModal="hideModal"
+    :visible="showAddGigModal"
+    :x="addGigModalX"
+    :y="addGigModalY"
+    @closeModal="hideAddGigModal"
     @submit="storeGigInfo"
     @artistSelected="handleSelectedArtist"
     :isLoading="isLoading"

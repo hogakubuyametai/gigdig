@@ -38,7 +38,7 @@ const handleDelete = () => {
       :style="{ top: y + 'px', left: x + 'px' }">
       <button
         @click='handleDelete'
-        class='w-full px-4 py-2 text-left bg-white hover:bg-gray-50 cursor-pointer rounded-md transition-all border border-gray-300'
+        class='w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base text-left bg-white hover:bg-gray-50 cursor-pointer rounded-md transition-all border border-gray-300 min-w-[80px] sm:min-w-[100px]'
         >
         🗑️ Delete
       </button>

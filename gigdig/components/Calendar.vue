@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import { useGigData } from "~/composables/useGigData";
 
-const emit = defineEmits(["show-gig-detail"]);
+const emit = defineEmits(["show-gig-detail", "show-add-gig-modal"]);
 
 const { getGigList, deleteGigData } = useGigData();
 
@@ -166,14 +166,41 @@ const renderCalendar = async () => {
           div.appendChild(gigLabel);
         });
 
-        div.addEventListener("click", () => {
-          const addGigModal = document.getElementById("add-gig-modal");
-          const gigDateInput = document.getElementById("gig-date");
+        div.addEventListener("click", (event) => {
+          const rect = event.target.getBoundingClientRect();
 
-          if (addGigModal && gigDateInput) {
-            addGigModal.classList.remove("hidden");
-            gigDateInput.value = selectedDate;
+          const modalWidth = 320;
+          const modalHeight = 400;
+
+          const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+          const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+          let adjustedX = rect.right + 10;
+          let adjustedY = rect.top;
+
+          if (adjustedX + modalWidth > viewportWidth) {
+            adjustedX = rect.left - modalWidth - 10;
           }
+
+          if (adjustedY + modalHeight > viewportHeight) {
+            adjustedY = viewportHeight - modalHeight - 10;
+          }
+
+          if (adjustedX < 0) {
+            adjustedX = 10;
+          }
+          
+          if (adjustedY < 0) {
+            adjustedY = 10;
+          }
+
+          emit("show-add-gig-modal", {
+            x: adjustedX,
+            y: adjustedY,
+            selectedDate: selectedDate,
+          });
+          
+          closeContextMenu();
         });
 
         if (date.isToday) {
