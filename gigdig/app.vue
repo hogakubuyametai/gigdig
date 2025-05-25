@@ -1,6 +1,6 @@
 <script setup>
 useHead({
-  title: 'gigdig',
+  title: 'GigDig',
 });
 </script>
 

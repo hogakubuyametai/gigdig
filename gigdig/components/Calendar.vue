@@ -395,8 +395,6 @@ const showContextMenu = (eventOrTouch, gig) => {
 </template>
 
 <style>
-@import "tailwindcss";
-
 @tailwind utilities;
 
 @layer utilities {
