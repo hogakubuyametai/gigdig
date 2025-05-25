@@ -49,8 +49,6 @@ const selectedDate = ref('');
 const showGigDetailModal = ref(false);
 const selectedGig = ref(null);
 
-const isLoading = ref(false);
-
 const resetArtistInput = ref(false);
 
 const handleShowGigDetail = async (gigInfo) => {
@@ -116,7 +114,6 @@ const storeGigInfo = async () => {
     return;
   }
 
-  isLoading.value = true;
 
   const gigData = {
     userId: user.value.id,
@@ -140,7 +137,6 @@ const storeGigInfo = async () => {
     alert(result.message);
   }
 
-  isLoading.value = false;
 };
 
 const signOut = async () => {
@@ -199,7 +195,6 @@ const hideAddGigModal = () => {
     @closeModal="hideAddGigModal"
     @submit="storeGigInfo"
     @artistSelected="handleSelectedArtist"
-    :isLoading="isLoading"
     :resetArtistInput="resetArtistInput"
   />
   <GigDetailModal
