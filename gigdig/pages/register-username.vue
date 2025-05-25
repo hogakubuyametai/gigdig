@@ -1,59 +1,107 @@
 <script setup>
-const client = useSupabaseClient();
+const supabase = useSupabaseClient();
 const user = useSupabaseUser();
+const router = useRouter();
 
-// サーバーサイドでユーザー情報を取得
-const { data: userData, pending } = await useAsyncData('userData', async () => {
+// 匿名ユーザーの場合は既存データの取得をスキップ
+const { data: existingUserName, error } = await useAsyncData('user-name', async () => {
   if (!user.value) return null;
-
-  const { data, error } = await client
-    .from('users')
-    .select('username')
-    .eq('user_id', user.value.id)
-    .single();
-
-  if (error) {
-    console.error('Error fetching user name:', error);
+  
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('username')
+      .eq('user_id', user.value.id)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116は「行が見つからない」エラーなので、匿名ユーザーの場合は正常
+      console.error('Error fetching user name:', error);
+    }
+    
+    return data?.username || null;
+  } catch (err) {
+    console.error('Error fetching user name:', err);
     return null;
   }
-
-  return {
-    userId: user.value.id,
-    userName: data?.username || '',
-  };
-}, {
-  server: true,
-  lazy: false,
-  immediate: true,
 });
 
-const userId = computed(() => userData.value?.userId || '');
-const userName = computed(() => userData.value?.userName || '');
+const username = ref(existingUserName.value || '');
+const isLoading = ref(false);
+const errorMessage = ref('');
 
-const success = ref(false);
-const loading = ref(false);
+const saveUsername = async () => {
+  if (!username.value.trim()) {
+    errorMessage.value = 'Please enter a username';
+    return;
+  }
+
+  if (!user.value) {
+    errorMessage.value = 'User information not found';
+    return;
+  }
+
+  isLoading.value = true;
+  errorMessage.value = '';
+
+  try {
+    const { error } = await supabase
+      .from('users')
+      .upsert({
+        user_id: user.value.id,
+        username: username.value.trim(),
+        created_at: new Date().toISOString(),
+      });
+
+    if (error) {
+      console.error('Error saving username:', error);
+      errorMessage.value = 'Failed to save username';
+    } else {
+      await router.push('/');
+    }
+  } catch (err) {
+    console.error('Error saving username:', err);
+    errorMessage.value = 'An error occurred';
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
-
 <template>
-  <div v-if="pending" class="flex items-center justify-center h-screen">
-    <div class="loader"></div>
-    <p class="text-gray-500">Loading...</p>
-  </div>
-  <div v-else-if="userId" class="flex flex-col items-center justify-center h-screen">
-    <h1 class="text-2xl font-bold mb-4">ユーザー名を登録</h1>
-    <p class="mb-4">ユーザー名を入力してください</p>
-    <input v-model="userName" type="text" placeholder="ユーザー名" class="border border-gray-300 rounded p-2 mb-4 w-64" />
-    <button @click="registerUserName" class="bg-blue-500 text-white rounded p-2 w-64">
-      登録
-    </button>
-    <p v-if="success" class="text-green-500 mt-4">
-      ユーザー名が登録されました<br />
-      <a href="/" class="text-blue-500">トップページに戻る</a>
-    </p>
-    <p v-if="loading" class="text-gray-500 mt-4">登録中...</p>
-  </div>
-  <div v-else class="flex items-center justify-center h-screen">
-    <p>Loading...</p>
+  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-50 mx-4">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <h1 class="text-2xl font-bold text-center mb-6">Set Your Username</h1>
+      
+      <form @submit.prevent="saveUsername" class="space-y-4">
+        <div>
+          <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+            Username
+          </label>
+          <input
+            id="username"
+            v-model="username"
+            type="text"
+            required
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Enter your username"
+            :disabled="isLoading"
+          />
+        </div>
+
+        <div v-if="errorMessage" class="text-red-600 text-sm">
+          {{ errorMessage }}
+        </div>
+
+        <button
+          type="submit"
+          :disabled="isLoading || !username.trim()"
+          class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md transition-colors duration-200 cursor-pointer"
+        >
+          <span v-if="isLoading">Saving...</span>
+          <span v-else>Save</span>
+        </button>
+      </form>
+    </div>
   </div>
 </template>
