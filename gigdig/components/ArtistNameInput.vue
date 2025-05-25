@@ -43,7 +43,7 @@ const setArtistName = (artist) => {
 
   emitArtistSelected({id: artist.id, name: artist.name});
 
-  console.log(selectedArtistId.value);
+  // console.log(selectedArtistId.value);
   searchResults.value = [];
 };
 

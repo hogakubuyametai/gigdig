@@ -94,7 +94,7 @@ const renderCalendar = async () => {
   const weeksCount = dates.length / 7;
 
   const gigs = await fetchGigDataList();
-  console.log("Fetched gigs:", gigs);
+  // console.log("Fetched gigs:", gigs);
 
   calendarTitle.value = `${year.value}/${String(month.value + 1).padStart(
     2,

@@ -213,7 +213,7 @@ const cancelEdit = () => {
                 v-for="topTrackId in gig.topTrackIds"
                 :key="topTrackId"
                 :data-track-id="topTrackId"
-                class="track-container overflow-hidden h-20 transition-transform duration-200 hover:scale-105"
+                class="track-container overflow-hidden h-20"
               >
                 <!-- スケルトンローディング -->
                 <div

@@ -9,14 +9,14 @@ const fetchAccessToken = async () => {
     accessToken = response.access_token;
     return accessToken;
   } catch (error) {
-    console.error(
-      "アクセストークンの取得に失敗しました (クライアントサイド):",
-      {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-      }
-    );
+    // console.error(
+    //   "アクセストークンの取得に失敗しました (クライアントサイド):",
+    //   {
+    //     message: error.message,
+    //     status: error.response?.status,
+    //     data: error.response?.data,
+    //   }
+    // );
     throw error;
   }
 };
@@ -55,7 +55,7 @@ export const searchArtists = async (query) => {
   try {
     const response = await requestWithAuth(url);
 
-    console.log("APIレスポンス: ", response); //レスポンス内容をログに出力
+    // console.log("APIレスポンス: ", response); //レスポンス内容をログに出力
 
     if (!response.artists?.items) {
       throw new Error("予期しないレスポンス形式です。artists.items が見つかりません。");
@@ -63,11 +63,11 @@ export const searchArtists = async (query) => {
 
     return response.artists.items;
   } catch (error) {
-    console.error("アーティストの検索に失敗しました:", {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-    });
+    // console.error("アーティストの検索に失敗しました:", {
+    //   message: error.message,
+    //   status: error.response?.status,
+    //   data: error.response?.data,
+    // });
     throw new Error("アーティストの検索に失敗しました。再試行してください。");
   }
 };
@@ -78,11 +78,11 @@ export const getArtistDetails = async (artistId) => {
     const response = await requestWithAuth(url);
     return response;
   } catch (error) {
-    console.error("アーティストの詳細取得に失敗しました:", {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-    });
+    // console.error("アーティストの詳細取得に失敗しました:", {
+    //   message: error.message,
+    //   status: error.response?.status,
+    //   data: error.response?.data,
+    // });
     throw new Error("アーティストの詳細取得に失敗しました。再試行してください。");
   }
 }
@@ -93,11 +93,11 @@ export const getArtistTopTracks = async (artistId) => {
     const response = await requestWithAuth(url);
     return response.tracks;
   } catch (error) {
-    console.error("トップトラックの取得に失敗しました:", {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-    });
+    // console.error("トップトラックの取得に失敗しました:", {
+    //   message: error.message,
+    //   status: error.response?.status,
+    //   data: error.response?.data,
+    // });
     throw new Error("トップトラックの取得に失敗しました。再試行してください。");
   }
 };
