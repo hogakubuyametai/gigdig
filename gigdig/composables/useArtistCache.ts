@@ -17,7 +17,7 @@ if (typeof window !== 'undefined') {
         gigDataCache.set(id, data);
       }
     } catch (e) {
-      console.warn('Failed to parse cache from sessionStorage:', e);
+      logger.warn('Failed to parse cache from sessionStorage:', e);
     }
   }
 }
@@ -31,11 +31,11 @@ function saveCacheToSession() {
 export function useArtistCache() {
   async function getArtistData(artistId: string): Promise<ArtistData> {
     if (gigDataCache.has(artistId)) {
-      console.log('Cache hit for artistId:', artistId);
+      // console.log('Cache hit for artistId:', artistId);
       return gigDataCache.get(artistId)!;
     }
 
-    console.log('Cache miss for artistId:', artistId);
+    // console.log('Cache miss for artistId:', artistId);
 
     const artistDetails = await getArtistDetails(artistId);
     const artistImageUrl = artistDetails?.images?.[0]?.url || '';
@@ -50,7 +50,7 @@ export function useArtistCache() {
         topTrackIds = fetched.map(track => track.id);
       }
     } catch (e) {
-      console.warn(`Failed to get top tracks for ${artistId}:`, e);
+      // console.warn(`Failed to get top tracks for ${artistId}:`, e);
     }
 
     const artistData: ArtistData = { artistImageUrl, topTrackIds };

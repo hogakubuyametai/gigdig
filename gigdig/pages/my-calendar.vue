@@ -18,11 +18,11 @@ const fetchArtistImageUrl = async (artistId) => {
   try {
     const data = await getArtistDetails(artistId);
     const artistImageUrl = data.images[0]?.url || "";
-    console.log('artistImageUrl:', artistImageUrl);
+    // console.log('artistImageUrl:', artistImageUrl);
     return artistImageUrl;
   }
   catch (error) {
-    console.error("getArtistDetails error:", error);
+    // console.error("getArtistDetails error:", error);
   }
 }
 
@@ -39,10 +39,10 @@ const handleShowGigDetail = async (gigInfo) => {
 const fetchArtists = async (input) => {
   try {
     const data = await searchArtists(input);
-    console.log("searchArtists の結果:", data);
+    // console.log("searchArtists の結果:", data);
     artists.value = data;
   } catch (error) {
-    console.error("artist search error:", error);
+    // console.error("artist search error:", error);
   }
 };
 
@@ -70,24 +70,24 @@ const setArtistName = (artist) => {
   isSelecting.value = true;
   inputArtistName.value = artist.name;
   selectedArtistId.value = artist.id;
-  console.log(selectedArtistId.value);
+  // console.log(selectedArtistId.value);
   artists.value = [];
 };
 
 const fetchTopTracks = async (artistId) => {
   try {
     const data = await getArtistTopTracks(artistId);
-    console.log(data);
+    // console.log(data);
     topTracks.value = data;
-    console.log("getArtistTopTracks の結果:", topTracks.value);
+    // console.log("getArtistTopTracks の結果:", topTracks.value);
   } catch (error) {
-    console.error("getTopTracks error:", error);
+    // console.error("getTopTracks error:", error);
   }
 };
 
 const handleSelectedArtist = (artist) => {
   selectedArtist.value = artist;
-  console.log("選択されたアーティスト:", artist);
+  // console.log("選択されたアーティスト:", artist);
 };
 
 const getGigDate = () => {
@@ -115,7 +115,7 @@ const addGigToLocalStorage = (gigData) => {
 };
 
 const hideModal = () => {
-  console.log("hideModalが呼ばれました");
+  // console.log("hideModalが呼ばれました");
   const addGigModal = document.getElementById("add-gig-modal");
   if (addGigModal) {
     addGigModal.classList.add("hidden");
@@ -138,7 +138,7 @@ const storeGigInfo = () => {
 
   calendarRef.value?.renderCalendar();
 
-  console.log("保存されたgig情報:", gigData);
+  // console.log("保存されたgig情報:", gigData);
 };
 
 

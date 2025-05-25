@@ -93,7 +93,7 @@ const isValidGigInput = (date, artist) => {
 };
 
 const hideModal = () => {
-  console.log("hideModalが呼ばれました");
+  // console.log("hideModalが呼ばれました");
   const addGigModal = document.getElementById("add-gig-modal");
   if (addGigModal) {
     addGigModal.classList.add("hidden");
@@ -131,7 +131,7 @@ const storeGigInfo = async () => {
     resetArtistInput.value = true;
     setTimeout(() => (resetArtistInput.value = false), 100); // 再利用可能にするため一瞬で戻す
   } else {
-    console.error('Supabase insert error:', result.message);
+    // console.error('Supabase insert error:', result.message);
     alert(result.message);
   }
 };
@@ -139,7 +139,7 @@ const storeGigInfo = async () => {
 const signOut = async () => {
   const { error } = await client.auth.signOut();
   if (error) {
-    console.error("Error signing out:", error);
+    // console.error("Error signing out:", error);
   } else {
     navigateTo({ path: "/login" });
   }
@@ -150,7 +150,7 @@ const handleGigUpdated = () => {
 };
 
 const handleShowAddGigModal = (modalInfo) => {
-  console.log("Add Gig Modal Info:", modalInfo);
+  // console.log("Add Gig Modal Info:", modalInfo);
   showAddGigModal.value = true;
   addGigModalX.value = modalInfo.x;
   addGigModalY.value = modalInfo.y;
