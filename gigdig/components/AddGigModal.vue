@@ -1,6 +1,4 @@
 <script setup>
-import { vi } from '@nuxt/ui/runtime/locale/index.js';
-
 const props = defineProps({
   resetArtistInput: Boolean,
 

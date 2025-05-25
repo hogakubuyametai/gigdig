@@ -1,7 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
-import tailwindcss from "@tailwindcss/vite";
-
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
@@ -9,29 +7,17 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
     'nuxt-primevue',
-    '@nuxt/ui',
+    '@nuxtjs/tailwindcss', // Tailwindモジュールを追加
     '@nuxtjs/supabase',
-    '@nuxt/image'
+    '@nuxt/image',
   ],
   experimental: {
     asyncContext: true,
-    // asyncDataCache: true,
-    // payloadExtraction: false,
-    // renderJsonPayloads: false,
-    // inlineSSRStyles: false // 追加: インラインスタイルの自動挿入を無効化
   },
   nitro: {
     routeRules: {
       '/': { ssr: true }
     },
-  },
-  vite: {
-    plugins: [
-      tailwindcss(),
-    ],
-  },
-  ui: {
-    colorMode: false,
   },
   supabase: {
     key: process.env.SUPABASE_ANON_KEY,
@@ -42,6 +28,5 @@ export default defineNuxtConfig({
     },
     spotifyClientId: process.env.SPOTIFY_CLIENT_ID,
     spotifyClientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    
   }
 });

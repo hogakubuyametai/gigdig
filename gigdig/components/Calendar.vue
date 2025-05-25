@@ -403,7 +403,11 @@ const showContextMenu = (eventOrTouch, gig) => {
   }
 
   tbody td {
-    @apply h-24 md:h-28 sm:p-2 border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-150;
+    @apply h-24 sm:p-2 border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-150;
+    /* md:h-28の代わりに直接指定 */
+    @media (min-width: 768px) {
+      height: 7rem; /* 112px = h-28 */
+    }
   }
 
   .calendar-cell {
