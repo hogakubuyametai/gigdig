@@ -68,7 +68,7 @@ const handleSelectedArtist = (artist) => {
     <div
       v-if='visible'
       id='add-gig-modal'
-      class='max-w-sm sm:max-w-md w-full mx-auto mt-4 rounded-2xl border border-gray-300 shadow-lg relative bg-white overflow-hidden z-70'
+      class='max-w-sm sm:max-w-md w-full mx-auto mt-4 rounded-2xl border border-gray-300 shadow-lg relative bg-white z-70 overflow-visible'
       :style="{
         position: 'fixed',
         left: x + 'px',
@@ -76,7 +76,7 @@ const handleSelectedArtist = (artist) => {
       }"
       @click.stop
     >
-      <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 p-4 sm:p-6 relative">
+      <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 p-4 sm:p-6 relative rounded-t-2xl">
         <h2 class="text-white text-xl sm:text-2xl font-bold">New Gig</h2>
         <button
           type='button'
@@ -87,7 +87,7 @@ const handleSelectedArtist = (artist) => {
         </button>
       </div>
       
-      <form @submit='handleSubmit' class='p-4 sm:p-6 space-y-4'>
+      <form @submit='handleSubmit' class='p-4 sm:p-6 space-y-4 rounded-b-2xl bg-white overflow-visible'>
         <div>
           <label for='gig-date' class='text-sm font-semibold text-gray-500 block mb-2'>
             Date
@@ -100,7 +100,7 @@ const handleSelectedArtist = (artist) => {
           />
         </div>
 
-        <div>
+        <div class="overflow-visible">
           <label for='artist-name' class='text-sm font-semibold text-gray-500 block mb-2'>
             Artist
           </label>

@@ -73,7 +73,7 @@ const setArtistName = (artist) => {
     >
       <ul
         v-if="searchResults.length > 0"
-        class="absolute top-full left-0 z-10 bg-white border border-gray-300 rounded-md w-full shadow-lg mt-1 max-h-48 overflow-y-auto"
+        class="absolute top-full left-0 bg-white border border-gray-300 rounded-md w-full shadow-lg mt-1 max-h-48 overflow-y-auto z-[100]"
       >
         <li
           v-for="artist in searchResults"
