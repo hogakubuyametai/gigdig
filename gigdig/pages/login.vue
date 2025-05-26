@@ -38,76 +38,79 @@ const loginAnonymously = async () => {
 <template>
   <div class="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
     <div class="container mx-auto px-4 py-8 lg:py-16">
-      <div class="grid lg:grid-cols-5 gap-8 lg:gap-16 items-center min-h-[calc(100vh-8rem)]">
+      <!-- モバイルでは単一カラム、デスクトップでグリッド -->
+      <div class="flex flex-col lg:grid lg:grid-cols-5 gap-8 lg:gap-16 items-center justify-center min-h-[calc(100vh-8rem)]">
         
         <!-- Left Content - 60% on desktop -->
-        <div class="lg:col-span-3 text-center lg:text-left">
+        <div class="lg:col-span-3 text-center lg:text-left w-full mx-auto lg:mx-0 flex flex-col items-center lg:items-start">
           <!-- Logo -->
-          <div class="flex justify-center lg:justify-start mb-8">
+          <div class="flex justify-center lg:justify-start mb-8 w-full max-w-lg lg:max-w-none">
             <NuxtImg src="/logo_gigdig.svg" alt="GigDig" class="h-12 w-auto" />
           </div>
 
           <!-- Main Catchcopy -->
           <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Dig Deeper Into
+            Dig Deeper Into<br class="sm:hidden">
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-blue-600">
               Every Gig
             </span>
           </h1>
 
           <!-- Subtitle -->
-          <p class="text-lg sm:text-xl text-gray-600 mb-8 lg:mb-12 max-w-2xl mx-auto lg:mx-0">
+          <p class="text-lg sm:text-xl text-gray-600 mb-8 lg:mb-12 w-full max-w-lg lg:max-w-2xl">
             Track your upcoming concerts and discover artists like never before. 
             Powered by Spotify's top tracks and recommendations.
           </p>
 
           <!-- Features -->
-          <div class="grid sm:grid-cols-2 gap-6 mb-8 lg:mb-12 max-w-2xl mx-auto lg:mx-0">
-            <div class="flex items-start gap-3">
-              <div class="flex-shrink-0 w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <span class="text-xl">🎵</span>
+          <div class="w-full max-w-lg lg:max-w-2xl">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 lg:mb-12">
+              <div class="flex items-start gap-3 text-left">
+                <div class="flex-shrink-0 w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                  <span class="text-xl">🎵</span>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-900 mb-1">Track Your Gigs</h3>
+                  <p class="text-sm text-gray-600">Keep all your upcoming concerts organized in one place</p>
+                </div>
               </div>
-              <div>
-                <h3 class="font-semibold text-gray-900 mb-1">Track Your Gigs</h3>
-                <p class="text-sm text-gray-600">Keep all your upcoming concerts organized in one place</p>
-              </div>
-            </div>
 
-            <div class="flex items-start gap-3">
-              <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span class="text-xl">🎧</span>
+              <div class="flex items-start gap-3 text-left">
+                <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <span class="text-xl">🎧</span>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-900 mb-1">Discover Music</h3>
+                  <p class="text-sm text-gray-600">Explore top tracks and related artists via Spotify</p>
+                </div>
               </div>
-              <div>
-                <h3 class="font-semibold text-gray-900 mb-1">Discover Music</h3>
-                <p class="text-sm text-gray-600">Explore top tracks and related artists via Spotify</p>
-              </div>
-            </div>
 
-            <div class="flex items-start gap-3">
-              <div class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <span class="text-xl">📅</span>
+              <div class="flex items-start gap-3 text-left">
+                <div class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <span class="text-xl">📅</span>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-900 mb-1">Calendar View</h3>
+                  <p class="text-sm text-gray-600">Visualize your concert schedule at a glance</p>
+                </div>
               </div>
-              <div>
-                <h3 class="font-semibold text-gray-900 mb-1">Calendar View</h3>
-                <p class="text-sm text-gray-600">Visualize your concert schedule at a glance</p>
-              </div>
-            </div>
 
-            <div class="flex items-start gap-3">
-              <div class="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <span class="text-xl">🔍</span>
-              </div>
-              <div>
-                <h3 class="font-semibold text-gray-900 mb-1">Deep Dive</h3>
-                <p class="text-sm text-gray-600">Get ready for shows with curated artist insights</p>
+              <div class="flex items-start gap-3 text-left">
+                <div class="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <span class="text-xl">🔍</span>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-900 mb-1">Deep Dive</h3>
+                  <p class="text-sm text-gray-600">Get ready for shows with curated artist insights</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Right Content - 40% on desktop -->
-        <div class="lg:col-span-2">
-          <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-100 max-w-md mx-auto">
+        <div class="lg:col-span-2 w-full flex justify-center">
+          <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-100 w-full max-w-md">
             <div class="text-center mb-6">
               <h2 class="text-2xl font-bold text-gray-900 mb-2">Get Started</h2>
               <p class="text-gray-600">Start Your Music Journey, Track Every Beat</p>
