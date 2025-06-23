@@ -14,7 +14,7 @@
 
 ## 🛠️ 技術スタック
 
-- **フロントエンド**: Vue.js 3.5.13 / Nuxt 3.16.2
+- **フロントエンド**: Vue.js 3.5.14 / Nuxt 3.17.4
 - **言語**: JavaScript / TypeScript
 - **スタイリング**: Tailwind CSS 3.4.17
 - **認証**: Supabase (Google認証・匿名認証)
