@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { useGigData } from "~/composables/useGigData";
 
 const emit = defineEmits(["show-gig-detail", "show-add-gig-modal"]);
@@ -12,7 +12,6 @@ const month = ref(today.getMonth());
 
 const calendarTitle = ref("");
 const calendarBody = ref(null);
-
 const isLoading = ref(true);
 
 const user = useSupabaseUser();
@@ -85,140 +84,130 @@ const fetchGigDataList = async () => {
 
 const renderCalendar = async () => {
   isLoading.value = true;
+  await nextTick();
 
   const head = getCalendarHead();
   const body = getCalendarBodyDays();
   const tail = getCalendarTail();
   const dates = [...head, ...body, ...tail];
-  const weeks = [];
-  const weeksCount = dates.length / 7;
 
   const gigs = await fetchGigDataList();
-  // console.log("Fetched gigs:", gigs);
 
-  calendarTitle.value = `${year.value}/${String(month.value + 1).padStart(
-    2,
-    "0"
-  )}`;
+  calendarTitle.value = `${year.value}/${String(month.value + 1).padStart(2, "0")}`;
 
-  // まずは既存のtbodyの中身をクリア
+  await nextTick();
+
   if (calendarBody.value) {
+    // 既存の中身をクリア
     while (calendarBody.value.firstChild) {
       calendarBody.value.removeChild(calendarBody.value.firstChild);
     }
-    // 新しい週の要素を作成して追加
-    for (let i = 0; i < weeksCount; i++) {
-      const week = dates.splice(0, 7);
-      const tr = document.createElement("tr");
 
-      week.forEach((date) => {
-        const td = document.createElement("td");
-        const div = document.createElement("div");
-        div.classList.add("calendar-cell");
-        div.textContent = date.date;
+    // 各日付のセルを作成
+    dates.forEach((date) => {
+      const div = document.createElement("div");
+      div.classList.add("calendar-cell");
+      
+      // 日付番号
+      const dateNumber = document.createElement("span");
+      dateNumber.classList.add("date-number");
+      dateNumber.textContent = date.date;
+      div.appendChild(dateNumber);
 
-        const selectedDate = new Date(year.value, date.month, date.date + 1)
-          .toISOString()
-          .slice(0, 10); // YYYY-MM-DD
+      // Gigラベルコンテナ
+      const gigContainer = document.createElement("div");
+      gigContainer.classList.add("gig-container");
 
-        //ライブ情報を表示
-        const gigsOnThisDay = gigs.filter(
-          (gig) => gig.gig_date === selectedDate
-        );
-        gigsOnThisDay.forEach((gig) => {
-          const gigLabel = document.createElement("div");
-          gigLabel.textContent = gig.artist_name;
-          gigLabel.classList.add("gig-label");
-          
-          let longPressTimer = null;
-          let isLongPress = false;
-          
-          gigLabel.addEventListener('touchstart', (event) => {
-            isLongPress = false;
-            longPressTimer = setTimeout(() => {
-              isLongPress = true;
-              showContextMenu(event.touches[0], gig);
-            }, 500); // 500msでロングプレスとみなす
-          });
-          
-          gigLabel.addEventListener('touchend', () => {
-            clearTimeout(longPressTimer);
-          });
-          
-          gigLabel.addEventListener('touchmove', () => {
-            clearTimeout(longPressTimer);
-          });
-          
-          
-          gigLabel.addEventListener("click", (event) => {
-            if(!isLongPress) {
-              event.stopPropagation();
-  
-              emit("show-gig-detail", {
-                id: gig.id,
-                date: gig.gig_date,
-                artistId: gig.artist_id,
-                artistName: gig.artist_name,
-              });
-            }
-          });
+      const selectedDate = new Date(year.value, date.month, date.date)
+        .toISOString()
+        .slice(0, 10);
 
-
-          gigLabel.addEventListener("contextmenu", (event) => {
-           showContextMenu(event, gig);
-          });
-          div.appendChild(gigLabel);
+      // ライブ情報を表示
+      const gigsOnThisDay = gigs.filter((gig) => gig.gig_date === selectedDate);
+      gigsOnThisDay.forEach((gig) => {
+        const gigLabel = document.createElement("div");
+        gigLabel.textContent = gig.artist_name;
+        gigLabel.classList.add("gig-label");
+        
+        let longPressTimer = null;
+        let isLongPress = false;
+        
+        gigLabel.addEventListener('touchstart', (event) => {
+          isLongPress = false;
+          longPressTimer = setTimeout(() => {
+            isLongPress = true;
+            showContextMenu(event.touches[0], gig);
+          }, 500);
+        });
+        
+        gigLabel.addEventListener('touchend', () => {
+          clearTimeout(longPressTimer);
+        });
+        
+        gigLabel.addEventListener('touchmove', () => {
+          clearTimeout(longPressTimer);
+        });
+        
+        gigLabel.addEventListener("click", (event) => {
+          if (!isLongPress) {
+            event.stopPropagation();
+            emit("show-gig-detail", {
+              id: gig.id,
+              date: gig.gig_date,
+              artistId: gig.artist_id,
+              artistName: gig.artist_name,
+            });
+          }
         });
 
-        div.addEventListener("click", (event) => {
-          const rect = event.target.getBoundingClientRect();
-
-          const modalWidth = 320;
-          const modalHeight = 400;
-
-          const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-          const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-
-          let adjustedX = rect.right + 10;
-          let adjustedY = rect.top;
-
-          if (adjustedX + modalWidth > viewportWidth) {
-            adjustedX = rect.left - modalWidth - 10;
-          }
-
-          if (adjustedY + modalHeight > viewportHeight) {
-            adjustedY = viewportHeight - modalHeight - 10;
-          }
-
-          if (adjustedX < 0) {
-            adjustedX = 10;
-          }
-          
-          if (adjustedY < 0) {
-            adjustedY = 10;
-          }
-
-          emit("show-add-gig-modal", {
-            x: adjustedX,
-            y: adjustedY,
-            selectedDate: selectedDate,
-          });
-
-          closeContextMenu();
+        gigLabel.addEventListener("contextmenu", (event) => {
+          showContextMenu(event, gig);
         });
-
-        if (date.isToday) {
-          div.classList.add("today");
-        }
-        if (date.isDisabled) {
-          div.classList.add("disabled");
-        }
-        tr.appendChild(td);
-        td.appendChild(div);
+        
+        gigContainer.appendChild(gigLabel);
       });
-      calendarBody.value.appendChild(tr);
-    }
+
+      div.appendChild(gigContainer);
+
+      // セルクリックイベント
+      div.addEventListener("click", (event) => {
+        const rect = event.target.getBoundingClientRect();
+        const modalWidth = 320;
+        const modalHeight = 400;
+        const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+        let adjustedX = rect.right + 10;
+        let adjustedY = rect.top;
+
+        if (adjustedX + modalWidth > viewportWidth) {
+          adjustedX = rect.left - modalWidth - 10;
+        }
+
+        if (adjustedY + modalHeight > viewportHeight) {
+          adjustedY = viewportHeight - modalHeight - 10;
+        }
+
+        if (adjustedX < 0) adjustedX = 10;
+        if (adjustedY < 0) adjustedY = 10;
+
+        emit("show-add-gig-modal", {
+          x: adjustedX,
+          y: adjustedY,
+          selectedDate: selectedDate,
+        });
+
+        closeContextMenu();
+      });
+
+      // クラス設定
+      if (date.isToday) div.classList.add("today");
+      if (date.isDisabled) div.classList.add("disabled");
+      
+      calendarBody.value.appendChild(div);
+    });
   }
+  
   isLoading.value = false;
 };
 
@@ -226,8 +215,9 @@ defineExpose({
   renderCalendar,
 });
 
-onMounted(() => {
-  renderCalendar();
+onMounted(async () => {
+  await nextTick();
+  await renderCalendar();
 });
 
 const prevMonth = () => {
@@ -282,7 +272,6 @@ const showContextMenu = (eventOrTouch, gig) => {
 
   const menuWidth = 100;
   const menuHeight = 50;
-
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
@@ -290,93 +279,109 @@ const showContextMenu = (eventOrTouch, gig) => {
   let adjustedY = y + 10;
 
   if (adjustedX + menuWidth > viewportWidth) {
-    adjustedX = viewportWidth - menuWidth - 10; // 画面右端に収める
+    adjustedX = viewportWidth - menuWidth - 10;
   }
 
   if (adjustedY + menuHeight > viewportHeight) {
     adjustedY = viewportHeight - menuHeight - 10;
   }
 
-  if (adjustedX < 0) {
-    adjustedX = 10;
-  }
-
-  if (adjustedY < 0) {
-    adjustedY = 10;
-  }
+  if (adjustedX < 0) adjustedX = 10;
+  if (adjustedY < 0) adjustedY = 10;
 
   contextMenu.value = {
     visible: true,
     x: adjustedX,
-    y: adjustedY, // 少し下にずらす
+    y: adjustedY,
     gig: gig
   };
 };
 </script>
 
 <template>
-  <div class="px-4 max-w-5xl mx-auto">
-    <div class="flex items-center gap-5 mt-8 mb-4 min-w-0">
-      <!-- 左側のボタンを flex-shrink-0 で固定 -->
-      <div class="flex items-center gap-5 flex-shrink-0">
-        <!-- Today ボタン -->
-        <button
-          @click="goToToday"
-          :disabled="isLoading"
-          class="text-sm px-3 py-2 sm:px-4 sm:py-1 border border-gray-400 rounded-full hover:bg-gray-100 transition cursor-pointer min-h-auto flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Today
-        </button>
+  <div class="px-2 md:px-4 max-w-6xl mx-auto space-y-4 md:space-y-8">
+    <!-- カレンダー全体 -->
+    <div class="relative">
+      <div class="backdrop-blur-xl bg-white/60 p-4 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-2xl border border-white/30 relative overflow-hidden group">
+        <!-- 動的背景効果 -->
+        <div class="absolute inset-0 bg-gradient-to-r from-emerald-50/30 via-transparent to-blue-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        
+        <div class="relative z-10">
+          <!-- 年月とナビゲーション -->
+          <div class="flex items-center justify-between mb-4 md:mb-6">
+            <div class="flex items-center gap-2 md:gap-6">
+              <h1 class="text-xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                {{ calendarTitle }}
+              </h1>
+              
+              <!-- ナビゲーションボタン -->
+              <div class="flex items-center gap-2 md:gap-3">
+                <button
+                  @click="prevMonth"
+                  :disabled="isLoading"
+                  class="group/btn backdrop-blur-lg bg-white/50 hover:bg-white/70 text-gray-700 border border-white/40 w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl transition-all duration-300 cursor-pointer hover:shadow-xl transform hover:scale-110 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none relative overflow-hidden"
+                >
+                  <div class="absolute inset-0 bg-gradient-to-r from-emerald-200/20 to-blue-200/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 rounded-xl md:rounded-2xl"></div>
+                  <svg class="w-3 h-3 md:w-5 md:h-5 relative z-10 transform group-hover/btn:-translate-x-0.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                  </svg>
+                </button>
+                
+                <button
+                  @click="nextMonth"
+                  :disabled="isLoading"
+                  class="group/btn backdrop-blur-lg bg-white/50 hover:bg-white/70 text-gray-700 border border-white/40 w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl transition-all duration-300 cursor-pointer hover:shadow-xl transform hover:scale-110 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none relative overflow-hidden"
+                >
+                  <div class="absolute inset-0 bg-gradient-to-r from-emerald-200/20 to-blue-200/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 rounded-xl md:rounded-2xl"></div>
+                  <svg class="w-3 h-3 md:w-5 md:h-5 relative z-10 transform group-hover/btn:translate-x-0.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
 
-        <!-- < > ボタン -->
-        <button
-          @click="prevMonth"
-          class="text-lg sm:text-xl hover:text-gray-600/90 hover:bg-gray-100/50 rounded-full px-1 transition cursor-pointer min-h-[44px] min-w-[44px] sm:min-h-auto sm:min-w-auto flex items-center justify-center"
-        >
-          &lt;
-        </button>
-        <button
-          @click="nextMonth"
-          class="text-lg sm:text-xl hover:text-gray-600/90 hover:bg-gray-100/50 rounded-full px-1 transition cursor-pointer min-h-[44px] min-w-[44px] sm:min-h-auto sm:min-w-auto flex items-center justify-center"
-        >
-          &gt;
-        </button>
-      </div>
+            <!-- Today ボタン -->
+            <button
+              @click="goToToday"
+              :disabled="isLoading"
+              class="group/today backdrop-blur-lg bg-gradient-to-r from-emerald-500/80 to-blue-500/80 hover:from-emerald-600/90 hover:to-blue-600/90 text-white border border-white/30 px-3 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl transition-all duration-300 font-semibold cursor-pointer hover:shadow-2xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none relative overflow-hidden"
+            >
+              <div class="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-white/10 opacity-0 group-hover/today:opacity-100 transition-opacity duration-300"></div>
+              <span class="relative z-10 flex items-center gap-1 md:gap-2">
+                <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span class="text-xs md:text-sm">Today</span>
+              </span>
+            </button>
+          </div>
 
-      <!-- 年月表示 - 残りのスペースを使って、必要に応じて縮小 -->
-      <h2 class="text-base sm:text-lg md:text-2xl font-sans min-w-0 flex-1 truncate">{{ calendarTitle }}</h2>
-    </div>
+          <!-- 曜日ヘッダー -->
+          <div class="grid grid-cols-7 gap-1 md:gap-4 text-center mb-4 md:mb-6">
+            <div class="text-red-500 font-bold text-xs md:text-sm py-2 md:py-3 rounded-lg md:rounded-xl bg-red-50/50">Sun</div>
+            <div class="text-gray-600 font-semibold text-xs md:text-sm py-2 md:py-3 rounded-lg md:rounded-xl bg-gray-50/30">Mon</div>
+            <div class="text-gray-600 font-semibold text-xs md:text-sm py-2 md:py-3 rounded-lg md:rounded-xl bg-gray-50/30">Tue</div>
+            <div class="text-gray-600 font-semibold text-xs md:text-sm py-2 md:py-3 rounded-lg md:rounded-xl bg-gray-50/30">Wed</div>
+            <div class="text-gray-600 font-semibold text-xs md:text-sm py-2 md:py-3 rounded-lg md:rounded-xl bg-gray-50/30">Thu</div>
+            <div class="text-gray-600 font-semibold text-xs md:text-sm py-2 md:py-3 rounded-lg md:rounded-xl bg-gray-50/30">Fri</div>
+            <div class="text-blue-500 font-bold text-xs md:text-sm py-2 md:py-3 rounded-lg md:rounded-xl bg-blue-50/50">Sat</div>
+          </div>
 
-    <!-- 曜日 -->
-    <div
-      class="grid grid-cols-7 text-center text-xs sm:text-sm text-gray-500 border-b pb-2 mb-2 font-sans"
-    >
-      <div>Sun</div>
-      <div>Mon</div>
-      <div>Tue</div>
-      <div>Wed</div>
-      <div>Thu</div>
-      <div>Fri</div>
-      <div>Sat</div>
-    </div>
+          <!-- カレンダー本体 -->
+          <div class="relative">
+            <!-- ローディング状態のオーバーレイ -->
+            <div v-if="isLoading" class="absolute inset-0 z-10 grid grid-cols-7 gap-1 md:gap-4">
+              <div v-for="i in 35" :key="i" class="backdrop-blur-lg bg-white/40 border border-white/30 rounded-xl md:rounded-3xl p-1 md:p-4 h-22 md:h-32 animate-pulse">
+                <div class="space-y-1 md:space-y-3">
+                  <div class="w-4 h-3 md:w-6 md:h-4 bg-gray-300/60 rounded"></div>
+                  <div class="w-12 h-3 md:w-20 md:h-6 bg-gray-300/40 rounded-full"></div>
+                </div>
+              </div>
+            </div>
 
-    <!-- カレンダー本体 -->
-    <table class="w-full">
-      <tbody ref="calendarBody" class="grid grid-rows-6 gap-px">
-        <!-- JavaScriptで描画 -->
-      </tbody>
-    </table>
-
-    <!-- ローディング表示 -->
-    <div v-if="isLoading" class="w-full">
-      <div class="grid grid-rows-6 gap-px">
-        <div v-for="week in 5" class="grid grid-cols-7 gap-px">
-          <div v-for="day in 7" class="h-24 md:h-28 border border-gray-200 bg-gray-50 animate-pulse rounded-md">
-            <div class="p-2 h-full flex flex-col">
-              <!-- 日付のスケルトン -->
-              <div class="w-4 h-3 bg-gray-300 rounded animate-pulse mb-2"></div>
-              <!-- Gigラベルのスケルトン -->
-              <div class="w-12 h-4 bg-gray-300 rounded-full animate-pulse"></div>
+            <!-- カレンダーグリッド -->
+            <div ref="calendarBody" class="grid grid-cols-7 gap-1 md:gap-4 min-h-[30rem] md:min-h-[40rem]" :class="{ 'opacity-0': isLoading, 'opacity-100': !isLoading }">
+              <!-- JavaScriptで描画 -->
             </div>
           </div>
         </div>
@@ -398,45 +403,147 @@ const showContextMenu = (eventOrTouch, gig) => {
 @tailwind utilities;
 
 @layer utilities {
-  tbody tr {
-    @apply grid grid-cols-7;
-  }
-
-  tbody td {
-    @apply h-24 sm:p-2 border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-150;
-    /* md:h-28の代わりに直接指定 */
-    @media (min-width: 768px) {
-      height: 7rem; /* 112px = h-28 */
-    }
+  /* カスタム高さクラスを定義 */
+  .h-22 {
+    height: 6rem; /* 96px - 少し高くする */
   }
 
   .calendar-cell {
-    @apply font-sans text-[0.625rem] sm:text-xs flex flex-col items-start h-full w-full rounded-md md:px-2 py-1 cursor-pointer select-none;
+    @apply backdrop-blur-lg bg-white/50 border border-white/30 rounded-xl md:rounded-3xl p-1 md:p-4 h-22 md:h-32 cursor-pointer select-none transition-all duration-500 flex flex-col relative overflow-hidden hover:bg-white/70 hover:border-white/50 hover:shadow-2xl hover:scale-105 transform-gpu;
   }
 
-  /* Today */
+  .calendar-cell::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.8s;
+  }
+
+  .calendar-cell:hover::before {
+    left: 100%;
+  }
+
+  .calendar-cell .date-number {
+    @apply font-bold text-gray-800 mb-0.5 md:mb-2 relative z-10 flex-shrink-0;
+    font-size: 10px;
+    line-height: 1;
+  }
+
+  @media (min-width: 768px) {
+    .calendar-cell .date-number {
+      @apply text-lg;
+      line-height: 1.2;
+    }
+  }
+
+  .gig-container {
+    @apply flex flex-col gap-0.5 md:gap-1 flex-1 relative z-10 overflow-hidden min-h-0;
+    /* 幅を最大限活用 */
+    width: 100%;
+  }
+
   .calendar-cell.today {
-    @apply bg-blue-100 border border-blue-300 text-blue-500 font-bold;
+    @apply bg-emerald-50/80 border-emerald-200/60 shadow-md;
   }
 
-  /* Disabled days (前後月) */
+  .calendar-cell.today .date-number {
+    @apply text-emerald-700 font-bold;
+  }
+
+  .calendar-cell.today::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    width: 3px;
+    height: 3px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 4px rgba(16, 185, 129, 0.3);
+  }
+
+  @media (min-width: 768px) {
+    .calendar-cell.today::after {
+      top: 6px;
+      right: 6px;
+      width: 4px;
+      height: 4px;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+    }
+  }
+
   .calendar-cell.disabled {
-    @apply text-gray-400 opacity-50;
+    @apply bg-white/20 text-gray-400 opacity-60 hover:bg-white/20 hover:scale-100 hover:shadow-none;
   }
 
-  /* Gig label */
+  .calendar-cell.disabled .date-number {
+    @apply text-gray-400;
+  }
+
   .gig-label {
-    @apply bg-blue-500 text-white text-[10px] sm:text-[12px] mt-0.5 sm:mt-1 px-1 sm:px-2 py-0.5 rounded-full truncate max-w-full hover:bg-blue-600 transition;
+    @apply bg-gradient-to-r from-emerald-500/90 to-blue-500/90 text-white text-[10px] sm:text-[12px] mt-0.5 sm:mt-1 px-1 sm:px-2 py-0.5 rounded-full truncate max-w-full hover:from-emerald-600 hover:to-blue-600 transition;
   }
 
-  /* Sunday */
-  tbody td:first-child .calendar-cell {
+  @media (min-width: 768px) {
+    .gig-label {
+      @apply text-xs;
+      min-height: 24px;
+      line-height: 1.4;
+      padding: 6px 12px;
+    }
+  }
+
+  .gig-label::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .gig-label:hover::before {
+    opacity: 1;
+  }
+
+  .calendar-cell:nth-child(7n+1):not(.disabled) .date-number {
     @apply text-red-500;
   }
 
-  /* Saturday */
-  tbody td:last-child .calendar-cell {
+  .calendar-cell:nth-child(7n):not(.disabled) .date-number {
     @apply text-blue-500;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .grid div:hover {
+    @apply  transition-transform duration-200;
+  }
+
+  /* スマートフォンでのホバー無効化 */
+  @media (hover: none) {
+    .calendar-cell:hover::before {
+      left: -100%;
+    }
+    
+    .calendar-cell:hover {
+      @apply scale-100 shadow-lg;
+    }
+    
+    .gig-label:hover {
+      @apply scale-100;
+    }
   }
 }
 </style>
