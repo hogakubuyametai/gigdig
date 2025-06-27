@@ -4,6 +4,7 @@ const user = useSupabaseUser();
 const router = useRouter();
 
 // 匿名ユーザーの場合は既存データの取得をスキップ
+// ユーザーネームの変更機能の追加を想定して、既存のユーザーネームを取得する処理を記述している
 const { data: existingUserName, error } = await useAsyncData('user-name', async () => {
   if (!user.value) return null;
   
@@ -12,8 +13,8 @@ const { data: existingUserName, error } = await useAsyncData('user-name', async 
       .from('users')
       .select('username')
       .eq('user_id', user.value.id)
-      .single();
-    
+      .maybeSingle();
+
     if (error && error.code !== 'PGRST116') {
       // PGRST116は「行が見つからない」エラーなので、匿名ユーザーの場合は正常
       console.error('Error fetching user name:', error);
