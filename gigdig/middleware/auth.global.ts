@@ -29,7 +29,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
       .from('users')
       .select('username')
       .eq('user_id', user.value.id)
-      .single();
+      .maybeSingle();
 
     // ユーザーレコードが存在しない、またはユーザー名が未設定の場合
     if (error || !userData?.username) {
