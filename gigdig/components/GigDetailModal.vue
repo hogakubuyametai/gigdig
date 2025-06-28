@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue';
 import { useGigData } from '~/composables/useGigData';
+import { getRelatedArtists } from '~/utils/spotify';
 
 const props = defineProps({
   gig: Object,
@@ -23,6 +24,12 @@ const isEditingDate = ref(false);
 const editingDate = ref('');
 const originalDate = ref('');
 
+// 関連アーティスト機能の状態
+const showRelatedArtists = ref(false);
+const relatedArtists = ref([]);
+const isLoadingRelatedArtists = ref(false);
+const relatedArtistsError = ref(null);
+
 // propsの変化を監視して内部状態を更新
 watch(() => props.gig, async (newGig) => {
   if (newGig) {
@@ -32,6 +39,12 @@ watch(() => props.gig, async (newGig) => {
     }
     gig.value = copied;
     originalDate.value = copied.date || "";
+    
+    // 関連アーティストの状態をリセット
+    showRelatedArtists.value = false;
+    relatedArtists.value = [];
+    isLoadingRelatedArtists.value = false;
+    relatedArtistsError.value = null;
     
     // 次のティックまで待ってからモーダルを表示
     await nextTick();
@@ -116,6 +129,35 @@ const cancelEdit = () => {
   editingDate.value = originalDate.value;
   isEditingDate.value = false;
 };
+
+// 関連アーティストを取得する関数
+const loadRelatedArtists = async () => {
+  if (isLoadingRelatedArtists.value || relatedArtists.value.length > 0) {
+    return;
+  }
+
+  isLoadingRelatedArtists.value = true;
+  relatedArtistsError.value = null;
+
+  try {
+    const artists = await getRelatedArtists(gig.value.artistId);
+    relatedArtists.value = artists;
+  } catch (error) {
+    console.error('関連アーティストの取得に失敗しました:', error);
+    relatedArtistsError.value = '関連アーティストの取得に失敗しました。';
+  } finally {
+    isLoadingRelatedArtists.value = false;
+  }
+};
+
+// 関連アーティストアコーディオンの切り替え
+const toggleRelatedArtists = async () => {
+  showRelatedArtists.value = !showRelatedArtists.value;
+  
+  if (showRelatedArtists.value && relatedArtists.value.length === 0) {
+    await loadRelatedArtists();
+  }
+};
 </script>
 
 <template>
@@ -140,7 +182,7 @@ const cancelEdit = () => {
       <!-- モーダル本体 -->
       <div
         id="gig-detail-modal"
-        class="max-w-sm sm:max-w-lg lg:max-w-3xl xl:max-w-4xl w-[calc(100%-2rem)] sm:w-[calc(100%-3rem)] lg:w-[calc(100%-4rem)] backdrop-blur-lg bg-white/30 rounded-3xl shadow-2xl border border-white/20 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 overflow-hidden z-80 group"
+        class="max-w-sm sm:max-w-lg lg:max-w-3xl xl:max-w-4xl w-[calc(100%-2rem)] sm:w-[calc(100%-3rem)] lg:w-[calc(100%-4rem)] max-h-[90vh] backdrop-blur-lg bg-white/30 rounded-3xl shadow-2xl border border-white/20 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 overflow-hidden z-80 group"
         @click.stop
       >
         <!-- グラスモーフィズム効果のための追加レイヤー -->
@@ -176,7 +218,7 @@ const cancelEdit = () => {
           </div>
           
           <!-- 本文 -->
-          <div class="p-4 sm:p-6 text-gray-800">
+          <div class="p-4 sm:p-6 text-gray-800 overflow-y-auto max-h-[calc(90vh-12rem)]">
             <div class="mb-4 sm:mb-6">
               <p class="text-sm font-medium text-gray-700 mb-2">Date</p>
               <p
@@ -214,7 +256,7 @@ const cancelEdit = () => {
               </div>
             </div>
             
-            <div>
+            <div class="mb-4 sm:mb-6">
               <p class="text-sm font-medium text-gray-700 mb-3">Top Tracks</p>
               <div
                 class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 overflow-y-auto max-h-48 sm:max-h-52 pr-1"
@@ -244,6 +286,106 @@ const cancelEdit = () => {
                   />
                 </div>
               </div>
+            </div>
+
+            <!-- 関連アーティストセクション -->
+            <div>
+              <!-- アコーディオンヘッダー -->
+              <div
+                class="flex items-center justify-between cursor-pointer backdrop-blur-md bg-white/20 rounded-xl border border-white/30 px-4 py-3 mb-3 hover:bg-white/30 transition-all duration-300 hover:scale-[102%]"
+                @click="toggleRelatedArtists"
+              >
+                <p class="text-sm font-medium text-gray-700">You Might Also Like</p>
+                <div class="flex items-center gap-2">
+                  <svg
+                    class="w-4 h-4 text-gray-600 transition-transform duration-300"
+                    :class="{ 'rotate-180': showRelatedArtists }"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+
+              <!-- アコーディオンコンテンツ -->
+              <Transition
+                name="accordion"
+                enter-active-class="transition-all duration-300 ease-out"
+                leave-active-class="transition-all duration-200 ease-in"
+                enter-from-class="opacity-0 max-h-0"
+                enter-to-class="opacity-100 max-h-48"
+                leave-from-class="opacity-100 max-h-48"
+                leave-to-class="opacity-0 max-h-0"
+              >
+                <div v-if="showRelatedArtists" class="overflow-hidden">
+                  <!-- ローディング状態 -->
+                  <div v-if="isLoadingRelatedArtists" class="flex justify-center py-6">
+                    <div class="flex space-x-2">
+                      <div
+                        v-for="i in 3"
+                        :key="i"
+                        class="w-3 h-3 bg-emerald-400 rounded-full animate-bounce"
+                        :style="{ animationDelay: `${(i - 1) * 0.1}s` }"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <!-- エラー状態 -->
+                  <div v-else-if="relatedArtistsError" class="text-center py-6">
+                    <p class="text-red-500 text-sm">{{ relatedArtistsError }}</p>
+                    <button
+                      class="mt-2 text-emerald-600 text-sm hover:text-emerald-700 transition-colors duration-300"
+                      @click="loadRelatedArtists"
+                    >
+                      再試行
+                    </button>
+                  </div>
+
+                  <!-- 関連アーティスト一覧 -->
+                  <div
+                    v-else-if="relatedArtists.length > 0"
+                    class="overflow-x-auto pb-2"
+                    style="scrollbar-width: thin; scrollbar-color: rgba(16, 185, 129, 0.3) transparent;"
+                  >
+                    <div class="flex space-x-3 sm:space-x-4 w-max">
+                      <div
+                        v-for="artist in relatedArtists.slice(0, 10)"
+                        :key="artist.id"
+                        class="flex-shrink-0 w-24 sm:w-28 cursor-pointer group"
+                      >
+                        <div class="backdrop-blur-md bg-white/20 rounded-xl border border-white/30 p-3 transition-all duration-300 hover:bg-white/30 hover:scale-[102%] hover:shadow-lg">
+                          <!-- アーティスト画像 -->
+                          <div class="aspect-square w-full mb-2 overflow-hidden rounded-lg bg-gradient-to-br from-gray-300/40 to-gray-400/40">
+                            <img
+                              v-if="artist.images && artist.images[0]"
+                              :src="artist.images[0].url"
+                              :alt="artist.name"
+                              class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              loading="lazy"
+                            />
+                            <div v-else class="w-full h-full flex items-center justify-center">
+                              <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                              </svg>
+                            </div>
+                          </div>
+                          <!-- アーティスト名 -->
+                          <p class="text-xs text-gray-700 text-center font-medium truncate" :title="artist.name">
+                            {{ artist.name }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- データなし状態 -->
+                  <div v-else class="text-center py-6">
+                    <p class="text-gray-500 text-sm">関連アーティストが見つかりませんでした。</p>
+                  </div>
+                </div>
+              </Transition>
             </div>
           </div>
         </div>
@@ -287,4 +429,3 @@ const cancelEdit = () => {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
 }
 </style>
-

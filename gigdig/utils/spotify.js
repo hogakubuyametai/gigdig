@@ -101,3 +101,18 @@ export const getArtistTopTracks = async (artistId) => {
     throw new Error("トップトラックの取得に失敗しました。再試行してください。");
   }
 };
+
+export const getRelatedArtists = async (artistId) => {
+  const url = `https://api.spotify.com/v1/artists/${artistId}/related-artists`;
+  try {
+    const response = await requestWithAuth(url);
+    return response.artists;
+  } catch (error) {
+    // console.error("関連アーティストの取得に失敗しました:", {
+    //   message: error.message,
+    //   status: error.response?.status,
+    //   data: error.response?.data,
+    // });
+    throw new Error("関連アーティストの取得に失敗しました。再試行してください。");
+  }
+};
