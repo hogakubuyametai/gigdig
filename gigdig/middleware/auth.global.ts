@@ -20,15 +20,18 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // ユーザー名の確認
   try {
-    const { data: userData, error } = await client
+    const response = await client
       .from('users')
       .select('username')
       .eq('user_id', user.value.id)
-      .maybeSingle() as { data: { username: string } | null, error: any };
+      .maybeSingle();
+    
+    const userData = response.data as { username: string } | null;
+    const error = response.error;
 
     // /register-usernameページの場合の特別な処理
     if (to.path === '/register-username') {
-      // ユーザー名が既に設定されている場合はホームにリダイレクト
+      // ユーザー名が既に設定されている場合はトップにリダイレクト
       if (!error && userData?.username) {
         return navigateTo('/');
       }
