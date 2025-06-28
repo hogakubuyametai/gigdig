@@ -3,13 +3,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const client = useSupabaseClient();
 
   // 認証が必要ないページ
-  const publicPages = ['/login', '/register-username', '/confirm'];
+  const publicPages = ['/login', '/confirm'];
   if (publicPages.includes(to.path)) {
-    // /register-usernameの場合はログイン状態だけチェック
-    if (to.path === '/register-username' && !user.value) {
-      return navigateTo('/login');
-    }
-    
     // /confirmページは認証処理を待つためスキップ
     if (to.path === '/confirm') {
       return;
@@ -25,13 +20,26 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // ユーザー名の確認
   try {
-    const { data: userData, error } = await client
+    const response = await client
       .from('users')
       .select('username')
       .eq('user_id', user.value.id)
       .maybeSingle();
+    
+    const userData = response.data as { username: string } | null;
+    const error = response.error;
 
-    // ユーザーレコードが存在しない、またはユーザー名が未設定の場合
+    // /register-usernameページの場合の特別な処理
+    if (to.path === '/register-username') {
+      // ユーザー名が既に設定されている場合はトップにリダイレクト
+      if (!error && userData?.username) {
+        return navigateTo('/');
+      }
+      // ユーザー名が未設定の場合はページ表示を許可
+      return;
+    }
+
+    // その他のページの場合：ユーザーレコードが存在しない、またはユーザー名が未設定の場合
     if (error || !userData?.username) {
       return navigateTo('/register-username');
     }
