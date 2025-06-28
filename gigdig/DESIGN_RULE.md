@@ -254,9 +254,10 @@ transition-transform duration-200
 ### ホバーエフェクト
 ```css
 /* スケール */
-transform hover:scale-105        /* 軽いスケール */
-transform hover:scale-110        /* より大きなスケール */
-transform hover:scale-[1.02]     /* 微細なスケール */
+transform hover:scale-105        /* 軽いスケール（ボタン、カードなど） */
+transform hover:scale-110        /* より大きなスケール（重要なアクション） */
+transform hover:scale-[102%]     /* 微細なスケール（ドロップダウン、リストアイテム） */
+transform hover:scale-[1.02]     /* 微細なスケール（代替記法） */
 
 /* シャドウ */
 hover:shadow-xl
@@ -266,6 +267,13 @@ hover:shadow-2xl
 transform hover:-translate-x-0.5
 transform hover:translate-x-0.5
 ```
+
+#### 使用用途別推奨スケール
+- **ボタン**: `hover:scale-105` または `hover:scale-110`
+- **カード**: `hover:scale-105`
+- **ドロップダウンアイテム**: `hover:scale-[102%]`
+- **リストアイテム**: `hover:scale-[102%]`
+- **小さなUI要素**: `hover:scale-[102%]`
 
 #### 埋め込みコンテンツのホバー制限
 ```css
