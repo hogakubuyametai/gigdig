@@ -9,14 +9,6 @@ const fetchAccessToken = async () => {
     accessToken = response.access_token;
     return accessToken;
   } catch (error) {
-    // console.error(
-    //   "アクセストークンの取得に失敗しました (クライアントサイド):",
-    //   {
-    //     message: error.message,
-    //     status: error.response?.status,
-    //     data: error.response?.data,
-    //   }
-    // );
     throw error;
   }
 };
@@ -55,19 +47,12 @@ export const searchArtists = async (query) => {
   try {
     const response = await requestWithAuth(url);
 
-    // console.log("APIレスポンス: ", response); //レスポンス内容をログに出力
-
     if (!response.artists?.items) {
       throw new Error("予期しないレスポンス形式です。artists.items が見つかりません。");
     }
 
     return response.artists.items;
   } catch (error) {
-    // console.error("アーティストの検索に失敗しました:", {
-    //   message: error.message,
-    //   status: error.response?.status,
-    //   data: error.response?.data,
-    // });
     throw new Error("アーティストの検索に失敗しました。再試行してください。");
   }
 };
@@ -78,11 +63,6 @@ export const getArtistDetails = async (artistId) => {
     const response = await requestWithAuth(url);
     return response;
   } catch (error) {
-    // console.error("アーティストの詳細取得に失敗しました:", {
-    //   message: error.message,
-    //   status: error.response?.status,
-    //   data: error.response?.data,
-    // });
     throw new Error("アーティストの詳細取得に失敗しました。再試行してください。");
   }
 }
@@ -110,80 +90,146 @@ export const getRelatedArtists = async (artistId) => {
     throw new Error("アーティストIDが必要です");
   }
 
-  const url = `https://api.spotify.com/v1/recommendations?seed_artists=${artistId}&limit=20`;
-  console.log("Recommendations API呼び出し:", {
-    artistId,
-    url
-  });
-  
   try {
-    // アクセストークンを確認
-    const token = await fetchAccessToken();
-    console.log("使用するアクセストークン（Recommendations）:", token ? "取得済み" : "なし");
-    
-    const response = await requestWithAuth(url);
-    console.log("Recommendations APIレスポンス:", {
-      status: "success",
-      responseType: typeof response,
-      hasTracks: !!response.tracks,
-      tracksLength: response.tracks?.length || 0,
-      response: response
+    // アーティスト詳細を取得してジャンル情報を得る
+    const artistDetails = await getArtistDetails(artistId);
+    console.log("アーティスト詳細取得:", {
+      name: artistDetails.name,
+      genres: artistDetails.genres,
+      popularity: artistDetails.popularity
     });
-    
-    if (!response.tracks || !Array.isArray(response.tracks)) {
-      console.warn("Recommendationsのレスポンス形式が予期しないものです:", response);
-      return [];
-    }
-    
-    // トラックからアーティスト情報を抽出
-    const artistsMap = new Map();
-    
-    response.tracks.forEach(track => {
-      if (track.artists && Array.isArray(track.artists)) {
-        track.artists.forEach(artist => {
-          // 元のアーティストを除外
-          if (artist.id !== artistId && !artistsMap.has(artist.id)) {
-            artistsMap.set(artist.id, {
-              id: artist.id,
-              name: artist.name,
-              images: artist.images || [],
-              external_urls: artist.external_urls,
-              followers: artist.followers,
-              genres: artist.genres || [],
-              href: artist.href,
-              popularity: artist.popularity,
-              type: artist.type,
-              uri: artist.uri
+
+    let relatedArtists = [];
+
+    // 戦略1: 全ジャンル個別検索（最優先）
+    if (artistDetails.genres && artistDetails.genres.length > 0) {
+      console.log("全ジャンル個別検索実行:", {
+        allGenres: artistDetails.genres,
+        originalPopularity: artistDetails.popularity
+      });
+
+      // 各ジャンルを1つずつ検索
+      for (const genre of artistDetails.genres) {
+        const genreQuery = `genre:"${genre}"`;
+        
+        console.log(`ジャンル検索実行: ${genre}`, {
+          query: genreQuery
+        });
+        
+        const genreSearchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(genreQuery)}&type=artist&limit=30`;
+
+        try {
+          const genreResponse = await requestWithAuth(genreSearchUrl);
+          
+          if (genreResponse.artists?.items) {
+            const genreArtists = genreResponse.artists.items
+              .filter(artist => artist.id !== artistId); // 元のアーティストを除外
+
+            relatedArtists = [...relatedArtists, ...genreArtists];
+            console.log(`ジャンル "${genre}" 検索結果:`, {
+              count: genreArtists.length,
+              artists: genreArtists.slice(0, 3).map(a => `${a.name} (popularity: ${a.popularity})`)
             });
           }
+        } catch (genreError) {
+          console.warn(`ジャンル "${genre}" 検索に失敗:`, genreError.message);
+        }
+      }
+
+      // 重複を排除
+      const uniqueArtists = [];
+      const seenIds = new Set();
+      for (const artist of relatedArtists) {
+        if (!seenIds.has(artist.id)) {
+          seenIds.add(artist.id);
+          uniqueArtists.push(artist);
+        }
+      }
+
+      relatedArtists = uniqueArtists;
+
+      console.log("全ジャンル検索結果:", {
+        originalPopularity: artistDetails.popularity,
+        count: relatedArtists.length,
+        artists: relatedArtists.slice(0, 5).map(a => `${a.name} (popularity: ${a.popularity})`)
+      });
+    }
+
+    // 戦略2: アーティスト名のみで検索（常に実行）
+    console.log("アーティスト名のみで検索実行:", artistDetails.name);
+    
+    const nameQuery = `${artistDetails.name}`;
+    const nameSearchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(nameQuery)}&type=artist&limit=50`;
+    
+    console.log("Search API呼び出し（アーティスト名のみ）:", {
+      query: nameQuery,
+      url: nameSearchUrl
+    });
+
+    try {
+      const nameResponse = await requestWithAuth(nameSearchUrl);
+      
+      if (nameResponse.artists?.items) {
+        const existingIds = new Set(relatedArtists.map(a => a.id));
+        const nameArtists = nameResponse.artists.items
+          .filter(artist => 
+            artist.id !== artistId && 
+            !existingIds.has(artist.id)
+          ); // 重複排除
+
+        relatedArtists = [...relatedArtists, ...nameArtists];
+        console.log("アーティスト名のみ検索結果:", {
+          count: nameArtists.length,
+          artists: nameArtists.slice(0, 5).map(a => `${a.name} (popularity: ${a.popularity})`)
         });
       }
-    });
-    
-    const relatedArtists = Array.from(artistsMap.values()).slice(0, 10);
-    
-    console.log("抽出した関連アーティスト:", {
-      count: relatedArtists.length,
-      artists: relatedArtists.map(a => a.name)
-    });
-    
-    if (relatedArtists.length === 0) {
-      console.warn("推薦から関連アーティストが0件でした:", artistId);
+    } catch (nameError) {
+      console.warn("アーティスト名のみ検索に失敗:", nameError.message);
     }
-    
-    return relatedArtists;
+
+    // 最終結果を元のアーティストのpopularityに近い順でソートして10件に制限
+    const originalPopularity = artistDetails.popularity || 0;
+    const finalResults = relatedArtists
+      .sort((a, b) => {
+        const diffA = Math.abs((a.popularity || 0) - originalPopularity);
+        const diffB = Math.abs((b.popularity || 0) - originalPopularity);
+        return diffA - diffB; // popularityの差が小さい順
+      })
+      .slice(0, 10);
+
+    console.log("最終的な関連アーティスト:", {
+      count: finalResults.length,
+      artists: finalResults.map(a => `${a.name} (popularity: ${a.popularity})`),
+      strategies: {
+        artistName: artistDetails.name,
+        genres: artistDetails.genres || [],
+        searchLevels: [
+          "アーティスト名検索（最優先）",
+          relatedArtists.length >= 10 ? "全ジャンル検索不要" : "全ジャンル検索使用",
+          relatedArtists.length >= 10 ? "主要ジャンル検索不要" : "主要ジャンル検索使用"
+        ].filter(level => !level.includes("不要"))
+      }
+    });
+
+    if (finalResults.length === 0) {
+      console.warn("全ての検索戦略で関連アーティストが見つかりませんでした:", artistId);
+    }
+
+    return finalResults;
+
   } catch (error) {
-    console.error("Recommendations APIの取得に失敗しました:", {
+    console.error("関連アーティスト取得に失敗しました:", {
       message: error.message,
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
       artistId: artistId,
-      url: url,
       fullError: error
     });
-    
-    throw new Error(`関連アーティストの取得に失敗しました: ${error.message}`);
+
+    // Search APIが利用可能なので、エラーでも空配列を返す
+    console.log("エラーのため空配列を返します");
+    return [];
   }
 };
 
