@@ -88,16 +88,18 @@ export const getArtistDetails = async (artistId) => {
 }
 
 export const getArtistTopTracks = async (artistId) => {
-  const url = `https://api.spotify.com/v1/artists/${artistId}/top-tracks`;
+  const url = `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`;
+  console.log("トップトラックAPI呼び出し（比較用）:", { artistId, url }); // デバッグ用
   try {
     const response = await requestWithAuth(url);
+    console.log("トップトラックAPIレスポンス:", response); // デバッグ用
     return response.tracks;
   } catch (error) {
-    // console.error("トップトラックの取得に失敗しました:", {
-    //   message: error.message,
-    //   status: error.response?.status,
-    //   data: error.response?.data,
-    // });
+    console.error("トップトラックの取得に失敗しました:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
     throw new Error("トップトラックの取得に失敗しました。再試行してください。");
   }
 };
