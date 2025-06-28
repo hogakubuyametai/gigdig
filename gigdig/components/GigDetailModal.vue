@@ -270,7 +270,6 @@ const cancelEdit = () => {
 
 /* トラックコンテナのホバーエフェクト */
 .track-container:hover {
-  transform: scale(1.02);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
