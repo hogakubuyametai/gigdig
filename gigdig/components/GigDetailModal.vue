@@ -132,11 +132,16 @@ const cancelEdit = () => {
 
 // 関連アーティストを取得する関数
 const loadRelatedArtists = async () => {
-  if (isLoadingRelatedArtists.value || relatedArtists.value.length > 0) {
+  if (isLoadingRelatedArtists.value) {
     return;
   }
 
-  console.log('関連アーティストを読み込み中:', gig.value.artistId);
+  console.log('関連アーティストを読み込み中:', {
+    artistId: gig.value.artistId,
+    artistName: gig.value.artistName,
+    hasExistingArtists: relatedArtists.value.length > 0
+  });
+  
   isLoadingRelatedArtists.value = true;
   relatedArtistsError.value = null;
 
@@ -146,14 +151,29 @@ const loadRelatedArtists = async () => {
     }
     
     const artists = await getRelatedArtists(gig.value.artistId);
-    console.log('取得した関連アーティスト:', artists);
+    console.log('取得した関連アーティスト:', {
+      count: artists?.length || 0,
+      artists: artists
+    });
+    
     relatedArtists.value = artists || [];
+    
+    if (relatedArtists.value.length === 0) {
+      console.warn('関連アーティストが0件でした');
+    }
   } catch (error) {
     console.error('関連アーティストの取得に失敗しました:', error);
     relatedArtistsError.value = error.message || '関連アーティストの取得に失敗しました。';
   } finally {
     isLoadingRelatedArtists.value = false;
   }
+};
+
+// 再試行機能 - 状態をリセットして再実行
+const retryLoadRelatedArtists = async () => {
+  relatedArtists.value = [];
+  relatedArtistsError.value = null;
+  await loadRelatedArtists();
 };
 
 // 関連アーティストアコーディオンの切り替え
@@ -349,7 +369,7 @@ const toggleRelatedArtists = async () => {
                       <p class="text-red-500 text-sm">{{ relatedArtistsError }}</p>
                       <button
                         class="mt-2 text-emerald-600 text-sm hover:text-emerald-700 transition-colors duration-300"
-                        @click="loadRelatedArtists"
+                        @click="retryLoadRelatedArtists"
                       >
                         再試行
                       </button>

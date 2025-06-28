@@ -103,18 +103,49 @@ export const getArtistTopTracks = async (artistId) => {
 };
 
 export const getRelatedArtists = async (artistId) => {
+  if (!artistId) {
+    console.error("artistId is missing");
+    throw new Error("アーティストIDが必要です");
+  }
+
   const url = `https://api.spotify.com/v1/artists/${artistId}/related-artists`;
+  console.log("関連アーティストAPI呼び出し:", {
+    artistId,
+    url
+  });
+  
   try {
     const response = await requestWithAuth(url);
-    console.log("関連アーティスト取得成功:", response); // デバッグ用
-    return response.artists || [];
+    console.log("関連アーティストAPIレスポンス:", {
+      status: "success",
+      responseType: typeof response,
+      hasArtists: !!response.artists,
+      artistsLength: response.artists?.length || 0,
+      firstArtist: response.artists?.[0]?.name || "none",
+      response: response
+    });
+    
+    if (!response.artists || !Array.isArray(response.artists)) {
+      console.warn("関連アーティストのレスポンス形式が予期しないものです:", response);
+      return [];
+    }
+    
+    // 関連アーティストが0件の場合もログ出力
+    if (response.artists.length === 0) {
+      console.warn("関連アーティストが0件でした:", artistId);
+    }
+    
+    return response.artists;
   } catch (error) {
     console.error("関連アーティストの取得に失敗しました:", {
       message: error.message,
       status: error.response?.status,
+      statusText: error.response?.statusText,
       data: error.response?.data,
-      artistId: artistId
+      artistId: artistId,
+      url: url,
+      error: error
     });
-    throw new Error("関連アーティストの取得に失敗しました。再試行してください。");
+    throw new Error(`関連アーティストの取得に失敗しました: ${error.message}`);
   }
 };
