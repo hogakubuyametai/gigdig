@@ -61,6 +61,9 @@ watch(() => props.gig, async (newGig) => {
     setTimeout(() => {
       showModal.value = true;
       console.log("モーダル表示状態:", showModal.value); // デバッグ用
+      
+      // モーダル表示時に関連アーティストを自動読み込み
+      loadRelatedArtists();
     }, 10);
   } else {
     showModal.value = false;
@@ -332,105 +335,74 @@ const toggleRelatedArtists = async () => {
                 </div>
               </div>
 
-              <!-- 関連アーティストセクション（デバッグ用テキスト付き） -->
-              <div>
-                <p class="text-xs text-gray-500 mb-2">Debug: アコーディオンセクション表示中</p>
-                <!-- アコーディオンヘッダー -->
-                <div
-                  class="flex items-center justify-between cursor-pointer backdrop-blur-md bg-white/20 rounded-xl border border-white/30 px-4 py-3 mb-3 hover:bg-white/30 transition-all duration-300 hover:scale-[102%]"
-                  @click="toggleRelatedArtists"
-                >
-                  <p class="text-sm font-medium text-gray-700">You Might Also Like</p>
-                  <div class="flex items-center gap-2">
-                    <svg
-                      class="w-4 h-4 text-gray-600 transition-transform duration-300"
-                      :class="{ 'rotate-180': showRelatedArtists }"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+              <!-- 関連アーティストセクション -->
+              <div class="mb-4 sm:mb-6">
+                <p class="text-sm font-medium text-gray-700 mb-3">You Might Also Like</p>
+                
+                <!-- ローディング状態 -->
+                <div v-if="isLoadingRelatedArtists" class="flex justify-center py-6">
+                  <div class="flex space-x-2">
+                    <div
+                      v-for="i in 3"
+                      :key="i"
+                      class="w-3 h-3 bg-emerald-400 rounded-full animate-bounce"
+                      :style="{ animationDelay: `${(i - 1) * 0.1}s` }"
+                    ></div>
                   </div>
                 </div>
 
-                <!-- アコーディオンコンテンツ -->
-                <Transition
-                  name="accordion"
-                  enter-active-class="transition-all duration-300 ease-out"
-                  leave-active-class="transition-all duration-200 ease-in"
-                  enter-from-class="opacity-0 max-h-0"
-                  enter-to-class="opacity-100 max-h-48"
-                  leave-from-class="opacity-100 max-h-48"
-                  leave-to-class="opacity-0 max-h-0"
+                <!-- エラー状態 -->
+                <div v-else-if="relatedArtistsError" class="text-center py-6">
+                  <p class="text-red-500 text-sm">{{ relatedArtistsError }}</p>
+                  <button
+                    class="mt-2 text-emerald-600 text-sm hover:text-emerald-700 transition-colors duration-300"
+                    @click="retryLoadRelatedArtists"
+                  >
+                    再試行
+                  </button>
+                </div>
+
+                <!-- 関連アーティスト一覧 -->
+                <div
+                  v-else-if="relatedArtists.length > 0"
+                  class="overflow-x-auto pb-2"
+                  style="scrollbar-width: thin; scrollbar-color: rgba(16, 185, 129, 0.3) transparent;"
                 >
-                  <div v-if="showRelatedArtists" class="overflow-hidden">
-                    <!-- ローディング状態 -->
-                    <div v-if="isLoadingRelatedArtists" class="flex justify-center py-6">
-                      <div class="flex space-x-2">
-                        <div
-                          v-for="i in 3"
-                          :key="i"
-                          class="w-3 h-3 bg-emerald-400 rounded-full animate-bounce"
-                          :style="{ animationDelay: `${(i - 1) * 0.1}s` }"
-                        ></div>
-                      </div>
-                    </div>
-
-                    <!-- エラー状態 -->
-                    <div v-else-if="relatedArtistsError" class="text-center py-6">
-                      <p class="text-red-500 text-sm">{{ relatedArtistsError }}</p>
-                      <button
-                        class="mt-2 text-emerald-600 text-sm hover:text-emerald-700 transition-colors duration-300"
-                        @click="retryLoadRelatedArtists"
-                      >
-                        再試行
-                      </button>
-                    </div>
-
-                    <!-- 関連アーティスト一覧 -->
+                  <div class="flex space-x-3 sm:space-x-4 w-max">
                     <div
-                      v-else-if="relatedArtists.length > 0"
-                      class="overflow-x-auto pb-2"
-                      style="scrollbar-width: thin; scrollbar-color: rgba(16, 185, 129, 0.3) transparent;"
+                      v-for="artist in relatedArtists.slice(0, 10)"
+                      :key="artist.id"
+                      class="flex-shrink-0 w-24 sm:w-28 cursor-pointer group"
                     >
-                      <div class="flex space-x-3 sm:space-x-4 w-max">
-                        <div
-                          v-for="artist in relatedArtists.slice(0, 10)"
-                          :key="artist.id"
-                          class="flex-shrink-0 w-24 sm:w-28 cursor-pointer group"
-                        >
-                          <div class="backdrop-blur-md bg-white/20 rounded-xl border border-white/30 p-3 transition-all duration-300 hover:bg-white/30 hover:scale-[102%] hover:shadow-lg">
-                            <!-- アーティスト画像 -->
-                            <div class="aspect-square w-full mb-2 overflow-hidden rounded-lg bg-gradient-to-br from-gray-300/40 to-gray-400/40">
-                              <img
-                                v-if="artist.images && artist.images[0]"
-                                :src="artist.images[0].url"
-                                :alt="artist.name"
-                                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                loading="lazy"
-                              />
-                              <div v-else class="w-full h-full flex items-center justify-center">
-                                <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                </svg>
-                              </div>
-                            </div>
-                            <!-- アーティスト名 -->
-                            <p class="text-xs text-gray-700 text-center font-medium truncate" :title="artist.name">
-                              {{ artist.name }}
-                            </p>
+                      <div class="backdrop-blur-md bg-white/20 rounded-xl border border-white/30 p-3 transition-all duration-300 hover:bg-white/30 hover:scale-[102%] hover:shadow-lg">
+                        <!-- アーティスト画像 -->
+                        <div class="aspect-square w-full mb-2 overflow-hidden rounded-lg bg-gradient-to-br from-gray-300/40 to-gray-400/40">
+                          <img
+                            v-if="artist.images && artist.images[0]"
+                            :src="artist.images[0].url"
+                            :alt="artist.name"
+                            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                          <div v-else class="w-full h-full flex items-center justify-center">
+                            <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
                           </div>
                         </div>
+                        <!-- アーティスト名 -->
+                        <p class="text-xs text-gray-700 text-center font-medium truncate" :title="artist.name">
+                          {{ artist.name }}
+                        </p>
                       </div>
                     </div>
-
-                    <!-- データなし状態 -->
-                    <div v-else class="text-center py-6">
-                      <p class="text-gray-500 text-sm">関連アーティストが見つかりませんでした。</p>
-                    </div>
                   </div>
-                </Transition>
+                </div>
+
+                <!-- データなし状態 -->
+                <div v-else class="text-center py-6">
+                  <p class="text-gray-500 text-sm">関連アーティストが見つかりませんでした。</p>
+                </div>
               </div>
             </div>
           </div>
