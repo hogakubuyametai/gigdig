@@ -79,7 +79,7 @@ const setArtistName = (artist) => {
           v-for="artist in searchResults"
           :key="artist.id"
           @click="setArtistName(artist)"
-          class="px-4 py-3 cursor-pointer hover:bg-white/60 transition-all duration-200 text-sm sm:text-base border-b border-white/30 last:border-b-0 transform hover:scale-[1.02]"
+          class="px-4 py-3 cursor-pointer hover:bg-white/60 transition-all duration-200 text-sm sm:text-base border-b border-white/30 last:border-b-0 transform hover:scale-[102%]"
         >
           {{ artist.name }}
         </li>
