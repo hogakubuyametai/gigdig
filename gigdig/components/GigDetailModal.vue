@@ -132,7 +132,7 @@ const cancelEdit = () => {
     <div v-if="showModal" class="fixed inset-0 z-60">
       <!-- 背景オーバーレイ -->
       <div
-        class="fixed inset-0 backdrop-blur-sm bg-black/20"
+        class="fixed inset-0 bg-transparent"
         @click="handleCloseModal"
       >
       </div>
@@ -168,7 +168,7 @@ const cancelEdit = () => {
             <!-- 閉じるボタン -->
             <button
               type="button"
-              class="backdrop-blur-md bg-white/20 hover:bg-white/30 cursor-pointer absolute top-3 sm:top-4 right-3 sm:right-4 text-white text-lg sm:text-xl font-bold hover:text-gray-200 transition-all duration-300 hover:scale-110 w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center border border-white/30 z-40"
+              class="cursor-pointer absolute top-3 sm:top-4 right-3 sm:right-4 text-white text-2xl sm:text-3xl font-bold hover:text-gray-300 transition-all duration-300 hover:scale-110 z-40"
               @click="handleCloseModal"
             >
               ×
