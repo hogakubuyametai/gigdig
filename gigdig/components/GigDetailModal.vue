@@ -32,6 +32,8 @@ const relatedArtistsError = ref(null);
 
 // propsの変化を監視して内部状態を更新
 watch(() => props.gig, async (newGig) => {
+  console.log("ギグデータが更新されました:", newGig); // デバッグ用
+  
   if (newGig) {
     const copied = JSON.parse(JSON.stringify(newGig));
     if (copied.date) {
@@ -39,6 +41,14 @@ watch(() => props.gig, async (newGig) => {
     }
     gig.value = copied;
     originalDate.value = copied.date || "";
+    
+    console.log("内部ギグデータ設定完了:", {
+      artistId: gig.value.artistId,
+      artistName: gig.value.artistName,
+      date: gig.value.date,
+      topTrackIds: gig.value.topTrackIds?.length || 0,
+      hasArtistImageUrl: !!gig.value.artistImageUrl
+    }); // デバッグ用
     
     // 関連アーティストの状態をリセット
     showRelatedArtists.value = false;
@@ -50,9 +60,11 @@ watch(() => props.gig, async (newGig) => {
     await nextTick();
     setTimeout(() => {
       showModal.value = true;
+      console.log("モーダル表示状態:", showModal.value); // デバッグ用
     }, 10);
   } else {
     showModal.value = false;
+    console.log("ギグデータなし、モーダル非表示"); // デバッグ用
   }
 }, { immediate: true });
 
@@ -320,8 +332,9 @@ const toggleRelatedArtists = async () => {
                 </div>
               </div>
 
-              <!-- 関連アーティストセクション -->
+              <!-- 関連アーティストセクション（デバッグ用テキスト付き） -->
               <div>
+                <p class="text-xs text-gray-500 mb-2">Debug: アコーディオンセクション表示中</p>
                 <!-- アコーディオンヘッダー -->
                 <div
                   class="flex items-center justify-between cursor-pointer backdrop-blur-md bg-white/20 rounded-xl border border-white/30 px-4 py-3 mb-3 hover:bg-white/30 transition-all duration-300 hover:scale-[102%]"
