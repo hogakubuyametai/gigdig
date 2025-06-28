@@ -63,27 +63,37 @@ const handleSelectedArtist = (artist) => {
 </script>
 
 <template>
-  <!-- モーダル全体のコンテナ -->
+  <!-- モーダル背景オーバーレイ -->
   <Transition
-    name="modal"
-    enter-active-class="transition-all duration-300 ease-out"
-    leave-active-class="transition-all duration-200 ease-in"
+    name="overlay"
+    enter-active-class="transition-opacity duration-300 ease-out"
+    leave-active-class="transition-opacity duration-200 ease-in"
     enter-from-class="opacity-0"
     enter-to-class="opacity-100"
     leave-from-class="opacity-100"
     leave-to-class="opacity-0"
   >
-    <div v-if="visible" class="fixed inset-0 z-60">
-      <!-- モーダル背景オーバーレイ -->
-      <div
-        class="fixed inset-0 bg-transparent"
-        @click="handleCloseModal"
-      ></div>
+    <div
+      v-if="visible"
+      class="fixed inset-0 bg-transparent z-50"
+      @click="handleCloseModal"
+    ></div>
+  </Transition>
 
-      <!-- モーダル本体 -->
-      <div
-        id='add-gig-modal'
-        class='max-w-sm sm:max-w-md w-full mx-auto mt-4 backdrop-blur-lg bg-white/30 rounded-3xl shadow-2xl border border-white/20 relative z-80 overflow-visible group'
+  <!-- モーダル本体のアニメーション -->
+  <Transition
+    name="modal"
+    enter-active-class="transition-all duration-300 ease-out"
+    leave-active-class="transition-all duration-200 ease-in"
+    enter-from-class="opacity-0 scale-95 translate-y-4"
+    enter-to-class="opacity-100 scale-100 translate-y-0"
+    leave-from-class="opacity-100 scale-100 translate-y-0"
+    leave-to-class="opacity-0 scale-95 translate-y-4"
+  >
+    <div
+      v-if='visible'
+      id='add-gig-modal'
+      class='max-w-sm sm:max-w-md w-full mx-auto mt-4 backdrop-blur-lg bg-white/30 rounded-3xl shadow-2xl border border-white/20 relative z-[9000] overflow-visible group'
       :style="{
         position: 'fixed',
         left: x + 'px',
@@ -141,7 +151,6 @@ const handleSelectedArtist = (artist) => {
           </button>
         </form>
       </div>
-    </div>
     </div>
   </Transition>
 </template>
