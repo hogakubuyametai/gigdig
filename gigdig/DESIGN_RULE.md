@@ -2,13 +2,30 @@
 
 GigDigプロジェクト全体のデザインルールとガイドラインを定義するドキュメントです。
 
+## CSSフレームワーク
+
+GigDigプロジェクトでは**Tailwind CSS**をメインのCSSフレームワークとして使用します。
+
+### 基本原則
+- **Utility First**: 可能な限りTailwind CSSのユーティリティクラスを使用
+- **カスタムCSS最小化**: カスタムCSSは特殊な要件でのみ使用
+- **設定の統一**: `tailwind.config.js`で定義されたデザイントークンを使用
+
+### Tailwind CSSの利点
+- **一貫性**: 事前定義されたスケールによる統一感
+- **効率性**: HTMLから離れることなくスタイリング可能
+- **最適化**: 未使用のCSSの自動削除
+- **レスポンシブ**: ブレークポイントベースの設計
+
 ## 目次
+- [CSSフレームワーク](#cssフレームワーク)
 - [色彩システム](#色彩システム)
 - [タイポグラフィ](#タイポグラフィ)
 - [コンポーネント](#コンポーネント)
 - [レイアウト](#レイアウト)
 - [アニメーション・エフェクト](#アニメーションエフェクト)
 - [レスポンシブデザイン](#レスポンシブデザイン)
+- [Tailwind CSS運用ガイドライン](#tailwind-css運用ガイドライン)
 - [命名規則](#命名規則)
 
 ## 色彩システム
@@ -97,16 +114,29 @@ text-xs                           /* 最小テキスト */
 
 #### モーダル
 ```vue
-<div class="backdrop-blur-lg bg-white/30 p-6 sm:p-8 rounded-3xl shadow-2xl border border-white/20 w-full max-w-md relative overflow-hidden">
-  <!-- グラスモーフィズム効果のための追加レイヤー -->
-  <div class="absolute inset-0 bg-gradient-to-br from-white/40 via-white/20 to-transparent rounded-3xl"></div>
-  <div class="absolute inset-0 bg-gradient-to-tl from-emerald-100/20 via-transparent to-blue-100/20 rounded-3xl"></div>
+<!-- モーダル全体のコンテナ -->
+<div class="fixed inset-0 z-60">
+  <!-- 透明オーバーレイ（背景クリックでクローズ） -->
+  <div class="fixed inset-0 bg-transparent" @click="closeModal"></div>
   
-  <div class="relative z-10">
-    <!-- モーダルコンテンツ -->
+  <!-- モーダル本体 -->
+  <div class="backdrop-blur-lg bg-white/30 p-6 sm:p-8 rounded-3xl shadow-2xl border border-white/20 w-full max-w-md relative overflow-hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-80" @click.stop>
+    <!-- グラスモーフィズム効果のための追加レイヤー -->
+    <div class="absolute inset-0 bg-gradient-to-br from-white/40 via-white/20 to-transparent rounded-3xl"></div>
+    <div class="absolute inset-0 bg-gradient-to-tl from-emerald-100/20 via-transparent to-blue-100/20 rounded-3xl"></div>
+    
+    <div class="relative z-10">
+      <!-- モーダルコンテンツ -->
+    </div>
   </div>
 </div>
 ```
+
+##### モーダル設計原則
+- **透明オーバーレイ**: `bg-transparent`を使用し、背景をクリックしてクローズ可能にする
+- **クローズボタン**: 詳細表示モーダルのみに配置、追加・編集モーダルでは省略
+- **z-index管理**: モーダル全体 `z-60`、モーダル本体 `z-80`、内部ドロップダウン `z-[99999]`
+- **中央配置**: `fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2`
 
 ### フォーム要素
 
@@ -154,6 +184,24 @@ text-xs                           /* 最小テキスト */
 ```
 
 ## レイアウト
+
+### z-index管理
+GigDigでは以下のz-index階層を使用します：
+
+```css
+/* z-index階層 */
+z-10     /* 基本コンテンツレイヤー */
+z-20     /* カード・コンポーネント */
+z-40     /* ドロップダウン・ツールチップ */
+z-60     /* モーダルオーバーレイ */
+z-80     /* モーダル本体 */
+z-[99999] /* モーダル内ドロップダウン（最高優先度） */
+```
+
+**使用例**:
+- **モーダル全体**: `z-60`
+- **モーダル本体**: `z-80` 
+- **モーダル内のドロップダウン**: `z-[99999]`
 
 ### コンテナ
 ```css
@@ -218,6 +266,20 @@ hover:shadow-2xl
 transform hover:-translate-x-0.5
 transform hover:translate-x-0.5
 ```
+
+#### 埋め込みコンテンツのホバー制限
+```css
+/* iframe等の埋め込みコンテンツではスケールエフェクトを避ける */
+.embedded-content:hover {
+  /* ❌ 避けるべき */
+  /* transform: scale(1.02); */
+  
+  /* ✅ 推奨 */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+```
+
+**理由**: 埋め込みコンテンツ（Spotify iframe等）内でのスケールエフェクトはレイアウトシフトやパフォーマンス問題を引き起こす可能性があるため
 
 ### 特殊エフェクト
 
@@ -297,7 +359,117 @@ gigLabel.addEventListener('touchstart', (event) => {
 }
 ```
 
+## Tailwind CSS運用ガイドライン
+
+### 優先順位
+1. **Tailwind CSSユーティリティクラス**を最優先で使用
+2. **組み込みバリエーション**でカバーできない場合のみカスタムCSS
+3. **再利用可能なコンポーネント**として抽象化
+
+### 使用例
+
+#### ✅ 推奨される書き方
+```vue
+<!-- Tailwind CSSのユーティリティクラスを使用 -->
+<div class="bg-white/30 backdrop-blur-lg rounded-2xl p-6 shadow-xl">
+  <h2 class="text-2xl font-bold text-gray-900 mb-4">Title</h2>
+  <p class="text-gray-600 leading-relaxed">Content</p>
+</div>
+```
+
+#### ❌ 避けるべき書き方
+```vue
+<!-- カスタムCSSクラスの濫用 -->
+<div class="custom-card">
+  <h2 class="custom-title">Title</h2>
+  <p class="custom-content">Content</p>
+</div>
+
+<style scoped>
+.custom-card {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(16px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+</style>
+```
+
+### カスタムCSS使用の判断基準
+以下の場合のみカスタムCSSを許可：
+
+#### 許可される例
+```css
+/* 複雑なアニメーション */
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+/* ブラウザ固有のスタイル */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* 擬似要素を使った特殊効果 */
+.calendar-cell::before {
+  content: '';
+  position: absolute;
+  /* ... */
+}
+```
+
+#### 避けるべき例
+```css
+/* Tailwindで代替可能なスタイル */
+.button-primary {
+  background: linear-gradient(to right, #10b981, #3b82f6);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  /* → bg-gradient-to-r from-emerald-500 to-blue-500 px-6 py-3 rounded-xl */
+}
+```
+
+### Tailwind設定のカスタマイズ
+プロジェクト固有の値は`tailwind.config.js`で定義：
+
+```javascript
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        'brand-emerald': '#10b981',
+        'brand-blue': '#3b82f6',
+      },
+      borderRadius: {
+        '4xl': '2rem',
+      },
+      spacing: {
+        '18': '4.5rem',
+      }
+    }
+  }
+}
+```
+
 ## 命名規則
+
+### ユーザビリティ原則
+
+#### モーダル操作
+- **詳細表示モーダル**: クローズボタンを右上に配置
+- **追加・編集モーダル**: クローズボタンは省略し、オーバーレイクリックまたはキャンセルボタンでクローズ
+- **透明オーバーレイ**: 背景クリックでクローズできるよう`bg-transparent`を使用
+
+#### フォーム操作
+- **バリデーション**: 必須項目が未入力の場合、送信ボタンを無効化
+- **状態表示**: `disabled:opacity-50 disabled:cursor-not-allowed`で視覚的にフィードバック
+
+#### アクセシビリティ
+- **キーボード操作**: Escキーでモーダルクローズ対応
+- **フォーカス管理**: モーダル開閉時の適切なフォーカス移動
+- **コントラスト**: 十分な色彩対比の確保
 
 ### クラス名
 - **コンポーネント**: `calendar-cell`, `gig-label`, `date-number`
@@ -327,13 +499,18 @@ gigLabel.addEventListener('touchstart', (event) => {
 ## 実装例
 
 ### 新しいコンポーネント作成時のチェックリスト
-1. ✅ メインカラー（emerald/blue）を使用
-2. ✅ グラスモーフィズム効果を適用
-3. ✅ レスポンシブ対応（sm:, md:, lg:）
-4. ✅ ホバーエフェクト（scale, shadow）
-5. ✅ 適切なトランジション（duration-300が基本）
-6. ✅ disabled状態の考慮
-7. ✅ モバイルタッチ対応
+1. ✅ **Tailwind CSSユーティリティクラス**を優先使用
+2. ✅ メインカラー（emerald/blue）を使用
+3. ✅ グラスモーフィズム効果を適用
+4. ✅ レスポンシブ対応（sm:, md:, lg:）
+5. ✅ ホバーエフェクト（scale, shadow）- 埋め込みコンテンツは除く
+6. ✅ 適切なトランジション（duration-300が基本）
+7. ✅ disabled状態の考慮
+8. ✅ モバイルタッチ対応
+9. ✅ 適切なz-index設定
+10. ✅ モーダルの場合は透明オーバーレイ使用
+11. ✅ バリデーション状態の視覚的フィードバック
+12. ✅ カスタムCSSの最小化
 
 ### コードサンプル - 新しいボタンコンポーネント
 ```vue
