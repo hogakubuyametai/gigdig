@@ -110,50 +110,42 @@ export const getRelatedArtists = async (artistId) => {
     throw new Error("アーティストIDが必要です");
   }
 
-  const url = `https://api.spotify.com/v1/artists/${artistId}/related-artists`;
-  console.log("関連アーティストAPI呼び出し:", {
-    artistId,
-    url
-  });
+  console.log("関連アーティスト取得開始 - Client Credentials Flowでは利用できない可能性があります");
   
+  // まずアーティストの詳細を取得してジャンル情報を得る
   try {
-    // まずアクセストークンを確認
-    const token = await fetchAccessToken();
-    console.log("使用するアクセストークン:", token ? "取得済み" : "なし");
-    
-    const response = await requestWithAuth(url);
-    console.log("関連アーティストAPIレスポンス:", {
-      status: "success",
-      responseType: typeof response,
-      hasArtists: !!response.artists,
-      artistsLength: response.artists?.length || 0,
-      firstArtist: response.artists?.[0]?.name || "none",
-      response: response
+    const artistDetails = await getArtistDetails(artistId);
+    console.log("アーティスト詳細取得成功:", {
+      name: artistDetails.name,
+      genres: artistDetails.genres
     });
     
-    if (!response.artists || !Array.isArray(response.artists)) {
-      console.warn("関連アーティストのレスポンス形式が予期しないものです:", response);
-      return [];
+    // ジャンルベースで類似アーティストを検索する代替手法
+    if (artistDetails.genres && artistDetails.genres.length > 0) {
+      const genre = artistDetails.genres[0]; // 最初のジャンルを使用
+      console.log("ジャンルベース検索実行:", genre);
+      
+      const searchResults = await searchArtists(`genre:${genre}`);
+      
+      // 検索結果から元のアーティストを除外し、最大10件を返す
+      const relatedArtists = searchResults
+        .filter(artist => artist.id !== artistId)
+        .slice(0, 10);
+      
+      console.log("代替関連アーティスト取得成功:", {
+        count: relatedArtists.length,
+        artists: relatedArtists.map(a => a.name)
+      });
+      
+      return relatedArtists;
     }
-    
-    // 関連アーティストが0件の場合もログ出力
-    if (response.artists.length === 0) {
-      console.warn("関連アーティストが0件でした:", artistId);
-    }
-    
-    return response.artists;
   } catch (error) {
-    console.error("関連アーティストの取得に失敗しました:", {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      artistId: artistId,
-      url: url,
-      fullError: error
-    });
-    throw new Error(`関連アーティストの取得に失敗しました: ${error.message}`);
+    console.error("代替手法でも関連アーティスト取得に失敗:", error);
   }
+  
+  // 全て失敗した場合は空配列を返す
+  console.warn("関連アーティストの取得に失敗しました - 空配列を返します");
+  return [];
 };
 
 // テスト用: アーティストの基本情報を取得してAPI接続確認
