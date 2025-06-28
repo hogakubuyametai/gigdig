@@ -136,15 +136,21 @@ const loadRelatedArtists = async () => {
     return;
   }
 
+  console.log('関連アーティストを読み込み中:', gig.value.artistId);
   isLoadingRelatedArtists.value = true;
   relatedArtistsError.value = null;
 
   try {
+    if (!gig.value.artistId) {
+      throw new Error('アーティストIDが見つかりません');
+    }
+    
     const artists = await getRelatedArtists(gig.value.artistId);
-    relatedArtists.value = artists;
+    console.log('取得した関連アーティスト:', artists);
+    relatedArtists.value = artists || [];
   } catch (error) {
     console.error('関連アーティストの取得に失敗しました:', error);
-    relatedArtistsError.value = '関連アーティストの取得に失敗しました。';
+    relatedArtistsError.value = error.message || '関連アーティストの取得に失敗しました。';
   } finally {
     isLoadingRelatedArtists.value = false;
   }
@@ -218,174 +224,181 @@ const toggleRelatedArtists = async () => {
           </div>
           
           <!-- 本文 -->
-          <div class="p-4 sm:p-6 text-gray-800 overflow-y-auto max-h-[calc(90vh-12rem)]">
-            <div class="mb-4 sm:mb-6">
-              <p class="text-sm font-medium text-gray-700 mb-2">Date</p>
-              <p
-                v-if="!isEditingDate"
-                class="text-base sm:text-lg cursor-pointer border-b border-dashed border-gray-400/50 hover:border-emerald-500 inline-flex items-center gap-2 transition-all duration-300 hover:scale-105 text-gray-800 hover:text-emerald-600"
-                @click="startEditing"
-              >
-                {{ gig.date }}
-                <span class="text-gray-500 text-sm">📝</span>
-              </p>
-              <div
-                v-if="isEditingDate"
-                class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mt-2"
-              >
-                <input
-                  v-model="editingDate"
-                  type="date"
-                  class="w-full sm:w-auto backdrop-blur-md bg-white/40 px-4 py-2 border border-white/30 rounded-xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-300/50 transition-all duration-300 text-gray-800"
-                />
-                <div class="flex gap-2 w-full sm:w-auto">
-                  <button
-                    class="group/save flex-1 sm:flex-none backdrop-blur-lg bg-gradient-to-r from-emerald-500/80 to-blue-500/80 hover:from-emerald-600/90 hover:to-blue-600/90 text-white border border-white/30 rounded-xl px-3 sm:px-4 py-2 cursor-pointer transition-all duration-300 text-sm sm:text-base font-semibold transform hover:scale-105 relative overflow-hidden"
-                    @click="saveDate"
-                  >
-                    <div class="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-white/10 opacity-0 group-hover/save:opacity-100 transition-opacity duration-300 rounded-xl"></div>
-                    <span class="relative z-10">Save</span>
-                  </button>
-                  <button
-                    class="flex-1 sm:flex-none backdrop-blur-lg bg-white/50 hover:bg-white/70 text-gray-700 border border-white/40 rounded-xl px-3 py-2 cursor-pointer hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-sm sm:text-base font-semibold"
-                    @click="cancelEdit"
-                  >
-                    Cancel
-                  </button>
+          <div class="flex flex-col h-full">
+            <!-- 上部コンテンツ（固定） -->
+            <div class="p-4 sm:p-6 flex-shrink-0">
+              <div class="mb-4 sm:mb-6">
+                <p class="text-sm font-medium text-gray-700 mb-2">Date</p>
+                <p
+                  v-if="!isEditingDate"
+                  class="text-base sm:text-lg cursor-pointer border-b border-dashed border-gray-400/50 hover:border-emerald-500 inline-flex items-center gap-2 transition-all duration-300 hover:scale-105 text-gray-800 hover:text-emerald-600"
+                  @click="startEditing"
+                >
+                  {{ gig.date }}
+                  <span class="text-gray-500 text-sm">📝</span>
+                </p>
+                <div
+                  v-if="isEditingDate"
+                  class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mt-2"
+                >
+                  <input
+                    v-model="editingDate"
+                    type="date"
+                    class="w-full sm:w-auto backdrop-blur-md bg-white/40 px-4 py-2 border border-white/30 rounded-xl cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-300/50 transition-all duration-300 text-gray-800"
+                  />
+                  <div class="flex gap-2 w-full sm:w-auto">
+                    <button
+                      class="group/save flex-1 sm:flex-none backdrop-blur-lg bg-gradient-to-r from-emerald-500/80 to-blue-500/80 hover:from-emerald-600/90 hover:to-blue-600/90 text-white border border-white/30 rounded-xl px-3 sm:px-4 py-2 cursor-pointer transition-all duration-300 text-sm sm:text-base font-semibold transform hover:scale-105 relative overflow-hidden"
+                      @click="saveDate"
+                    >
+                      <div class="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-white/10 opacity-0 group-hover/save:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                      <span class="relative z-10">Save</span>
+                    </button>
+                    <button
+                      class="flex-1 sm:flex-none backdrop-blur-lg bg-white/50 hover:bg-white/70 text-gray-700 border border-white/40 rounded-xl px-3 py-2 cursor-pointer hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-sm sm:text-base font-semibold"
+                      @click="cancelEdit"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
             
-            <div class="mb-4 sm:mb-6">
-              <p class="text-sm font-medium text-gray-700 mb-3">Top Tracks</p>
-              <div
-                class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 overflow-y-auto max-h-48 sm:max-h-52 pr-1"
-                style="scrollbar-width: thin; scrollbar-color: rgba(16, 185, 129, 0.3) transparent;"
-              >
+            <!-- スクロール可能なコンテンツエリア -->
+            <div class="flex-1 overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6 text-gray-800" style="scrollbar-width: thin; scrollbar-color: rgba(16, 185, 129, 0.3) transparent;">
+              <!-- Top Tracksセクション -->
+              <div class="mb-4 sm:mb-6">
+                <p class="text-sm font-medium text-gray-700 mb-3">Top Tracks</p>
                 <div
-                  v-for="topTrackId in gig.topTrackIds"
-                  :key="topTrackId"
-                  :data-track-id="topTrackId"
-                  class="track-container overflow-hidden h-20 backdrop-blur-md bg-white/20 rounded-xl border border-white/30 hover:bg-white/30 transition-all duration-300"
+                  class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 overflow-y-auto max-h-48 sm:max-h-52 pr-1"
+                  style="scrollbar-width: thin; scrollbar-color: rgba(16, 185, 129, 0.3) transparent;"
                 >
-                  <!-- スケルトンローディング -->
                   <div
-                    v-if="!loadedTracks.has(topTrackId)"
-                    class="bg-gradient-to-r from-gray-300/40 via-gray-200/40 to-gray-300/40 animate-pulse w-full h-full rounded-xl"
-                  ></div>
-                  <iframe
-                    v-if="visibleTracks.has(topTrackId)"
-                    :src="`https://open.spotify.com/embed/track/${topTrackId}`"
-                    width="100%"
-                    height="80"
-                    frameborder="0"
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                    class="rounded-xl transition-opacity duration-300"
-                    @load="handleTrackLoaded(topTrackId)"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- 関連アーティストセクション -->
-            <div>
-              <!-- アコーディオンヘッダー -->
-              <div
-                class="flex items-center justify-between cursor-pointer backdrop-blur-md bg-white/20 rounded-xl border border-white/30 px-4 py-3 mb-3 hover:bg-white/30 transition-all duration-300 hover:scale-[102%]"
-                @click="toggleRelatedArtists"
-              >
-                <p class="text-sm font-medium text-gray-700">You Might Also Like</p>
-                <div class="flex items-center gap-2">
-                  <svg
-                    class="w-4 h-4 text-gray-600 transition-transform duration-300"
-                    :class="{ 'rotate-180': showRelatedArtists }"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                    v-for="topTrackId in gig.topTrackIds"
+                    :key="topTrackId"
+                    :data-track-id="topTrackId"
+                    class="track-container overflow-hidden h-20 backdrop-blur-md bg-white/20 rounded-xl border border-white/30 hover:bg-white/30 transition-all duration-300"
                   >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
+                    <!-- スケルトンローディング -->
+                    <div
+                      v-if="!loadedTracks.has(topTrackId)"
+                      class="bg-gradient-to-r from-gray-300/40 via-gray-200/40 to-gray-300/40 animate-pulse w-full h-full rounded-xl"
+                    ></div>
+                    <iframe
+                      v-if="visibleTracks.has(topTrackId)"
+                      :src="`https://open.spotify.com/embed/track/${topTrackId}`"
+                      width="100%"
+                      height="80"
+                      frameborder="0"
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                      loading="lazy"
+                      class="rounded-xl transition-opacity duration-300"
+                      @load="handleTrackLoaded(topTrackId)"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <!-- アコーディオンコンテンツ -->
-              <Transition
-                name="accordion"
-                enter-active-class="transition-all duration-300 ease-out"
-                leave-active-class="transition-all duration-200 ease-in"
-                enter-from-class="opacity-0 max-h-0"
-                enter-to-class="opacity-100 max-h-48"
-                leave-from-class="opacity-100 max-h-48"
-                leave-to-class="opacity-0 max-h-0"
-              >
-                <div v-if="showRelatedArtists" class="overflow-hidden">
-                  <!-- ローディング状態 -->
-                  <div v-if="isLoadingRelatedArtists" class="flex justify-center py-6">
-                    <div class="flex space-x-2">
-                      <div
-                        v-for="i in 3"
-                        :key="i"
-                        class="w-3 h-3 bg-emerald-400 rounded-full animate-bounce"
-                        :style="{ animationDelay: `${(i - 1) * 0.1}s` }"
-                      ></div>
-                    </div>
-                  </div>
-
-                  <!-- エラー状態 -->
-                  <div v-else-if="relatedArtistsError" class="text-center py-6">
-                    <p class="text-red-500 text-sm">{{ relatedArtistsError }}</p>
-                    <button
-                      class="mt-2 text-emerald-600 text-sm hover:text-emerald-700 transition-colors duration-300"
-                      @click="loadRelatedArtists"
+              <!-- 関連アーティストセクション -->
+              <div>
+                <!-- アコーディオンヘッダー -->
+                <div
+                  class="flex items-center justify-between cursor-pointer backdrop-blur-md bg-white/20 rounded-xl border border-white/30 px-4 py-3 mb-3 hover:bg-white/30 transition-all duration-300 hover:scale-[102%]"
+                  @click="toggleRelatedArtists"
+                >
+                  <p class="text-sm font-medium text-gray-700">You Might Also Like</p>
+                  <div class="flex items-center gap-2">
+                    <svg
+                      class="w-4 h-4 text-gray-600 transition-transform duration-300"
+                      :class="{ 'rotate-180': showRelatedArtists }"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      再試行
-                    </button>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
                   </div>
+                </div>
 
-                  <!-- 関連アーティスト一覧 -->
-                  <div
-                    v-else-if="relatedArtists.length > 0"
-                    class="overflow-x-auto pb-2"
-                    style="scrollbar-width: thin; scrollbar-color: rgba(16, 185, 129, 0.3) transparent;"
-                  >
-                    <div class="flex space-x-3 sm:space-x-4 w-max">
-                      <div
-                        v-for="artist in relatedArtists.slice(0, 10)"
-                        :key="artist.id"
-                        class="flex-shrink-0 w-24 sm:w-28 cursor-pointer group"
+                <!-- アコーディオンコンテンツ -->
+                <Transition
+                  name="accordion"
+                  enter-active-class="transition-all duration-300 ease-out"
+                  leave-active-class="transition-all duration-200 ease-in"
+                  enter-from-class="opacity-0 max-h-0"
+                  enter-to-class="opacity-100 max-h-48"
+                  leave-from-class="opacity-100 max-h-48"
+                  leave-to-class="opacity-0 max-h-0"
+                >
+                  <div v-if="showRelatedArtists" class="overflow-hidden">
+                    <!-- ローディング状態 -->
+                    <div v-if="isLoadingRelatedArtists" class="flex justify-center py-6">
+                      <div class="flex space-x-2">
+                        <div
+                          v-for="i in 3"
+                          :key="i"
+                          class="w-3 h-3 bg-emerald-400 rounded-full animate-bounce"
+                          :style="{ animationDelay: `${(i - 1) * 0.1}s` }"
+                        ></div>
+                      </div>
+                    </div>
+
+                    <!-- エラー状態 -->
+                    <div v-else-if="relatedArtistsError" class="text-center py-6">
+                      <p class="text-red-500 text-sm">{{ relatedArtistsError }}</p>
+                      <button
+                        class="mt-2 text-emerald-600 text-sm hover:text-emerald-700 transition-colors duration-300"
+                        @click="loadRelatedArtists"
                       >
-                        <div class="backdrop-blur-md bg-white/20 rounded-xl border border-white/30 p-3 transition-all duration-300 hover:bg-white/30 hover:scale-[102%] hover:shadow-lg">
-                          <!-- アーティスト画像 -->
-                          <div class="aspect-square w-full mb-2 overflow-hidden rounded-lg bg-gradient-to-br from-gray-300/40 to-gray-400/40">
-                            <img
-                              v-if="artist.images && artist.images[0]"
-                              :src="artist.images[0].url"
-                              :alt="artist.name"
-                              class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              loading="lazy"
-                            />
-                            <div v-else class="w-full h-full flex items-center justify-center">
-                              <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                              </svg>
+                        再試行
+                      </button>
+                    </div>
+
+                    <!-- 関連アーティスト一覧 -->
+                    <div
+                      v-else-if="relatedArtists.length > 0"
+                      class="overflow-x-auto pb-2"
+                      style="scrollbar-width: thin; scrollbar-color: rgba(16, 185, 129, 0.3) transparent;"
+                    >
+                      <div class="flex space-x-3 sm:space-x-4 w-max">
+                        <div
+                          v-for="artist in relatedArtists.slice(0, 10)"
+                          :key="artist.id"
+                          class="flex-shrink-0 w-24 sm:w-28 cursor-pointer group"
+                        >
+                          <div class="backdrop-blur-md bg-white/20 rounded-xl border border-white/30 p-3 transition-all duration-300 hover:bg-white/30 hover:scale-[102%] hover:shadow-lg">
+                            <!-- アーティスト画像 -->
+                            <div class="aspect-square w-full mb-2 overflow-hidden rounded-lg bg-gradient-to-br from-gray-300/40 to-gray-400/40">
+                              <img
+                                v-if="artist.images && artist.images[0]"
+                                :src="artist.images[0].url"
+                                :alt="artist.name"
+                                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                loading="lazy"
+                              />
+                              <div v-else class="w-full h-full flex items-center justify-center">
+                                <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                              </div>
                             </div>
+                            <!-- アーティスト名 -->
+                            <p class="text-xs text-gray-700 text-center font-medium truncate" :title="artist.name">
+                              {{ artist.name }}
+                            </p>
                           </div>
-                          <!-- アーティスト名 -->
-                          <p class="text-xs text-gray-700 text-center font-medium truncate" :title="artist.name">
-                            {{ artist.name }}
-                          </p>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  <!-- データなし状態 -->
-                  <div v-else class="text-center py-6">
-                    <p class="text-gray-500 text-sm">関連アーティストが見つかりませんでした。</p>
+                    <!-- データなし状態 -->
+                    <div v-else class="text-center py-6">
+                      <p class="text-gray-500 text-sm">関連アーティストが見つかりませんでした。</p>
+                    </div>
                   </div>
-                </div>
-              </Transition>
+                </Transition>
+              </div>
             </div>
           </div>
         </div>
