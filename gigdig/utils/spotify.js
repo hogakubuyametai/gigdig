@@ -115,6 +115,10 @@ export const getRelatedArtists = async (artistId) => {
   });
   
   try {
+    // まずアクセストークンを確認
+    const token = await fetchAccessToken();
+    console.log("使用するアクセストークン:", token ? "取得済み" : "なし");
+    
     const response = await requestWithAuth(url);
     console.log("関連アーティストAPIレスポンス:", {
       status: "success",
@@ -144,8 +148,32 @@ export const getRelatedArtists = async (artistId) => {
       data: error.response?.data,
       artistId: artistId,
       url: url,
-      error: error
+      fullError: error
     });
     throw new Error(`関連アーティストの取得に失敗しました: ${error.message}`);
+  }
+};
+
+// テスト用: アーティストの基本情報を取得してAPI接続確認
+export const testArtistAPI = async (artistId) => {
+  const url = `https://api.spotify.com/v1/artists/${artistId}`;
+  console.log("アーティスト詳細API（テスト）呼び出し:", {
+    artistId,
+    url
+  });
+  
+  try {
+    const response = await requestWithAuth(url);
+    console.log("アーティスト詳細API（テスト）レスポンス:", {
+      status: "success",
+      name: response.name,
+      id: response.id,
+      followers: response.followers?.total,
+      genres: response.genres
+    });
+    return response;
+  } catch (error) {
+    console.error("アーティスト詳細API（テスト）エラー:", error);
+    throw error;
   }
 };
