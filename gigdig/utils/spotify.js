@@ -110,42 +110,80 @@ export const getRelatedArtists = async (artistId) => {
     throw new Error("アーティストIDが必要です");
   }
 
-  console.log("関連アーティスト取得開始 - Client Credentials Flowでは利用できない可能性があります");
+  const url = `https://api.spotify.com/v1/artists/${artistId}/related-artists`;
+  console.log("関連アーティストAPI呼び出し:", {
+    artistId,
+    url
+  });
   
-  // まずアーティストの詳細を取得してジャンル情報を得る
   try {
-    const artistDetails = await getArtistDetails(artistId);
-    console.log("アーティスト詳細取得成功:", {
-      name: artistDetails.name,
-      genres: artistDetails.genres
+    // まずアクセストークンを確認
+    const token = await fetchAccessToken();
+    console.log("使用するアクセストークン（関連アーティスト）:", token ? "取得済み" : "なし");
+    
+    // リクエスト詳細をログ出力
+    console.log("リクエスト詳細:", {
+      method: "GET",
+      url: url,
+      headers: {
+        Authorization: `Bearer ${token?.substring(0, 20)}...`
+      }
     });
     
-    // ジャンルベースで類似アーティストを検索する代替手法
-    if (artistDetails.genres && artistDetails.genres.length > 0) {
-      const genre = artistDetails.genres[0]; // 最初のジャンルを使用
-      console.log("ジャンルベース検索実行:", genre);
-      
-      const searchResults = await searchArtists(`genre:${genre}`);
-      
-      // 検索結果から元のアーティストを除外し、最大10件を返す
-      const relatedArtists = searchResults
-        .filter(artist => artist.id !== artistId)
-        .slice(0, 10);
-      
-      console.log("代替関連アーティスト取得成功:", {
-        count: relatedArtists.length,
-        artists: relatedArtists.map(a => a.name)
-      });
-      
-      return relatedArtists;
+    const response = await requestWithAuth(url);
+    console.log("関連アーティストAPIレスポンス:", {
+      status: "success",
+      responseType: typeof response,
+      hasArtists: !!response.artists,
+      artistsLength: response.artists?.length || 0,
+      firstArtist: response.artists?.[0]?.name || "none",
+      response: response
+    });
+    
+    if (!response.artists || !Array.isArray(response.artists)) {
+      console.warn("関連アーティストのレスポンス形式が予期しないものです:", response);
+      return [];
     }
+    
+    // 関連アーティストが0件の場合もログ出力
+    if (response.artists.length === 0) {
+      console.warn("関連アーティストが0件でした:", artistId);
+    }
+    
+    return response.artists;
   } catch (error) {
-    console.error("代替手法でも関連アーティスト取得に失敗:", error);
+    console.error("関連アーティストの取得に失敗しました:", {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      artistId: artistId,
+      url: url,
+      fullError: error
+    });
+    
+    // 404エラーの場合、アーティストIDの妥当性を確認
+    if (error.response?.status === 404) {
+      console.log("404エラー - アーティストIDを確認中:", artistId);
+      
+      // 同じアーティストIDでアーティスト詳細が取得できるかテスト
+      try {
+        const artistDetails = await getArtistDetails(artistId);
+        console.log("アーティスト詳細は取得可能:", {
+          id: artistDetails.id,
+          name: artistDetails.name,
+          exists: true
+        });
+        
+        // アーティストは存在するが関連アーティストAPIが404を返している
+        console.error("アーティストは存在するが、関連アーティストAPIが404を返しています");
+      } catch (detailError) {
+        console.error("アーティスト詳細取得も失敗:", detailError);
+      }
+    }
+    
+    throw new Error(`関連アーティストの取得に失敗しました: ${error.message}`);
   }
-  
-  // 全て失敗した場合は空配列を返す
-  console.warn("関連アーティストの取得に失敗しました - 空配列を返します");
-  return [];
 };
 
 // テスト用: アーティストの基本情報を取得してAPI接続確認
