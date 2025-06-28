@@ -57,7 +57,7 @@ const setArtistName = (artist) => {
       type="text"
       id="search-artists"
       name="search-artists"
-      class="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all duration-200 text-sm sm:text-base"
+      class="w-full backdrop-blur-md bg-white/40 px-4 py-3 border border-white/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-300/50 transition-all duration-300 text-gray-800 placeholder-gray-500 text-sm sm:text-base"
       placeholder="Who's performing?"
     />
     
@@ -73,13 +73,13 @@ const setArtistName = (artist) => {
     >
       <ul
         v-if="searchResults.length > 0"
-        class="absolute top-full left-0 bg-white border border-gray-300 rounded-md w-full shadow-lg mt-1 max-h-48 overflow-y-auto z-[100]"
+        class="absolute top-full left-0 backdrop-blur-md bg-white/90 border border-white/30 rounded-2xl w-full shadow-lg mt-1 max-h-48 overflow-y-auto z-[100]"
       >
         <li
           v-for="artist in searchResults"
           :key="artist.id"
           @click="setArtistName(artist)"
-          class="px-3 py-2 cursor-pointer hover:bg-gray-100 transition-all duration-200 text-sm sm:text-base border-b border-gray-100 last:border-b-0 transform hover:scale-[102%]"
+          class="px-4 py-3 cursor-pointer hover:bg-white/60 transition-all duration-200 text-sm sm:text-base border-b border-white/30 last:border-b-0 transform hover:scale-[102%]"
         >
           {{ artist.name }}
         </li>
