@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, watch, nextTick } from 'vue';
 import { useGigData } from '~/composables/useGigData';
-import { getRelatedArtists, testArtistAPI } from '~/utils/spotify';
+import { getRelatedArtists } from '~/utils/spotify';
 
 const props = defineProps({
   gig: Object,
