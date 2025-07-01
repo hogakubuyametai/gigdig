@@ -5,7 +5,13 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./tests/setup.ts']
+    setupFiles: ['./tests/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      include: ['composables/**/*.ts', 'utils/**/*.js'],
+      exclude: ['**/*.test.ts', '**/*.spec.ts', '__mocks__/**']
+    }
   },
   resolve: {
     alias: {
