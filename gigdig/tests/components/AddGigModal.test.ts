@@ -3,14 +3,12 @@ import { mount } from '@vue/test-utils'
 import AddGigModal from '@/components/AddGigModal.vue'
 
 // ArtistNameInputをモック
-vi.mock('@/components/ArtistNameInput.vue', () => ({
-  default: {
-    name: 'ArtistNameInput',
-    template: '<div data-testid="artist-name-input"></div>',
-    emits: ['artistSelected'],
-    props: ['reset']
-  }
-}))
+const ArtistNameInputMock = {
+  name: 'ArtistNameInput',
+  template: '<div data-testid="artist-name-input"></div>',
+  emits: ['artistSelected'],
+  props: ['reset']
+}
 
 describe('AddGigModal.vue', () => {
   let wrapper: any
@@ -41,7 +39,12 @@ describe('AddGigModal.vue', () => {
   describe('プロパティとレンダリング', () => {
     it('visibleがtrueの時にモーダルが表示される', () => {
       wrapper = mount(AddGigModal, {
-        props: { ...defaultProps, visible: true }
+        props: { ...defaultProps, visible: true },
+        global: {
+          stubs: {
+            ArtistNameInput: ArtistNameInputMock
+          }
+        }
       })
 
       const modal = wrapper.find('#add-gig-modal')
@@ -50,7 +53,12 @@ describe('AddGigModal.vue', () => {
 
     it('visibleがfalseの時にモーダルが非表示になる', () => {
       wrapper = mount(AddGigModal, {
-        props: { ...defaultProps, visible: false }
+        props: { ...defaultProps, visible: false },
+        global: {
+          stubs: {
+            ArtistNameInput: ArtistNameInputMock
+          }
+        }
       })
 
       const modal = wrapper.find('#add-gig-modal')
@@ -59,7 +67,12 @@ describe('AddGigModal.vue', () => {
 
     it('x、y座標が正しく適用される', () => {
       wrapper = mount(AddGigModal, {
-        props: { ...defaultProps, x: 150, y: 250 }
+        props: { ...defaultProps, x: 150, y: 250 },
+        global: {
+          stubs: {
+            ArtistNameInput: ArtistNameInputMock
+          }
+        }
       })
 
       const modal = wrapper.find('#add-gig-modal')
@@ -70,7 +83,12 @@ describe('AddGigModal.vue', () => {
 
     it('基本的なフォーム要素が表示される', () => {
       wrapper = mount(AddGigModal, {
-        props: defaultProps
+        props: defaultProps,
+        global: {
+          stubs: {
+            ArtistNameInput: ArtistNameInputMock
+          }
+        }
       })
 
       // タイトル
@@ -94,7 +112,12 @@ describe('AddGigModal.vue', () => {
   describe('アーティスト選択機能', () => {
     beforeEach(() => {
       wrapper = mount(AddGigModal, {
-        props: defaultProps
+        props: defaultProps,
+        global: {
+          stubs: {
+            ArtistNameInput: ArtistNameInputMock
+          }
+        }
       })
     })
 
@@ -104,7 +127,7 @@ describe('AddGigModal.vue', () => {
     })
 
     it('アーティスト選択時にartistSelectedイベントが発火される', async () => {
-      const artistInput = wrapper.find('[data-testid="artist-name-input"]')
+      const artistInput = wrapper.findComponent('[data-testid="artist-name-input"]')
       
       // ArtistNameInputからのイベントをシミュレート
       await artistInput.vm.$emit('artistSelected', mockArtist)
@@ -128,7 +151,12 @@ describe('AddGigModal.vue', () => {
   describe('フォーム送信', () => {
     beforeEach(() => {
       wrapper = mount(AddGigModal, {
-        props: defaultProps
+        props: defaultProps,
+        global: {
+          stubs: {
+            ArtistNameInput: ArtistNameInputMock
+          }
+        }
       })
     })
 
@@ -172,7 +200,12 @@ describe('AddGigModal.vue', () => {
   describe('モーダル制御', () => {
     beforeEach(() => {
       wrapper = mount(AddGigModal, {
-        props: defaultProps
+        props: defaultProps,
+        global: {
+          stubs: {
+            ArtistNameInput: ArtistNameInputMock
+          }
+        }
       })
     })
 
@@ -196,7 +229,12 @@ describe('AddGigModal.vue', () => {
   describe('リセット機能', () => {
     it('resetArtistInputプロパティの変更でアーティスト選択がリセットされる', async () => {
       wrapper = mount(AddGigModal, {
-        props: { ...defaultProps, resetArtistInput: false }
+        props: { ...defaultProps, resetArtistInput: false },
+        global: {
+          stubs: {
+            ArtistNameInput: ArtistNameInputMock
+          }
+        }
       })
 
       const artistInput = wrapper.find('[data-testid="artist-name-input"]')
@@ -220,7 +258,12 @@ describe('AddGigModal.vue', () => {
 
     it('visibleがfalseになった時にアーティスト選択がリセットされる', async () => {
       wrapper = mount(AddGigModal, {
-        props: { ...defaultProps, visible: true }
+        props: { ...defaultProps, visible: true },
+        global: {
+          stubs: {
+            ArtistNameInput: ArtistNameInputMock
+          }
+        }
       })
 
       const artistInput = wrapper.find('[data-testid="artist-name-input"]')
@@ -246,7 +289,12 @@ describe('AddGigModal.vue', () => {
   describe('アクセシビリティ', () => {
     beforeEach(() => {
       wrapper = mount(AddGigModal, {
-        props: defaultProps
+        props: defaultProps,
+        global: {
+          stubs: {
+            ArtistNameInput: ArtistNameInputMock
+          }
+        }
       })
     })
 
