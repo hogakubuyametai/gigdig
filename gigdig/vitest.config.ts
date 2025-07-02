@@ -9,7 +9,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['composables/**/*.ts', 'utils/**/*.js'],
+      include: ['composables/**/*.ts', 'components/**/*.vue', 'utils/**/*.js'],
       exclude: ['**/*.test.ts', '**/*.spec.ts', '__mocks__/**']
     }
   },

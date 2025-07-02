@@ -1,4 +1,10 @@
 import { vi } from 'vitest'
+import { config } from '@vue/test-utils'
+
+// Vue Test Utils のグローバル設定
+config.global.stubs = {
+  teleport: true,
+}
 
 // グローバルなモックの設定
 global.console = {

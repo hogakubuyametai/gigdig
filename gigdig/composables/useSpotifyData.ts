@@ -1,3 +1,4 @@
+import { ref } from 'vue';
 import { searchArtists } from '@/utils/spotify';
 
 export const useSpotifyData = () => {
