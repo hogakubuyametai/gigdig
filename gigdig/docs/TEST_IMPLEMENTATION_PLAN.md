@@ -12,10 +12,12 @@ GigDigアプリケーションの品質向上を目的とした、包括的な�
 
 **Composables総合カバレッジ: 93.45%** 🎯
 
-### 2. コンポーネントテスト
-- [ ] `components/Calendar.vue`
-- [ ] `components/AddGigModal.vue`
+### 2. コンポーネントテスト 🚧 進行中
+- [x] `components/AddGigModal.vue` - 16テスト (9成功, 7要修正)
+- [ ] `components/Calendar.vue` - 基盤作成済み
 - [ ] `components/GigDetailModal.vue`
+
+**コンポーネントテスト進捗: 1/3 開始**
 
 ### 3. E2Eテスト
 - [ ] ログイン → ギグ追加 → 削除の基本フロー
