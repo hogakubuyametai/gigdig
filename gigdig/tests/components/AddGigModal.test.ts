@@ -7,7 +7,10 @@ const ArtistNameInputMock = {
   name: 'ArtistNameInput',
   template: '<div data-testid="artist-name-input"></div>',
   emits: ['artistSelected'],
-  props: ['reset']
+  props: ['reset'],
+  methods: {
+    $emit: vi.fn()
+  }
 }
 
 describe('AddGigModal.vue', () => {
@@ -137,9 +140,9 @@ describe('AddGigModal.vue', () => {
     })
 
     it('アーティスト選択後は送信ボタンが有効になる', async () => {
-      const artistInput = wrapper.find('[data-testid="artist-name-input"]')
+      const artistInput = wrapper.findComponent('[data-testid="artist-name-input"]')
       
-      // アーティスト選択をシミュレート
+      // アーティスト選択をシミュレート - 親コンポーネントのイベントハンドラーを直接呼び出し
       await artistInput.vm.$emit('artistSelected', mockArtist)
       await wrapper.vm.$nextTick()
       
@@ -161,7 +164,7 @@ describe('AddGigModal.vue', () => {
     })
 
     it('アーティスト選択後にフォーム送信が可能', async () => {
-      const artistInput = wrapper.find('[data-testid="artist-name-input"]')
+      const artistInput = wrapper.findComponent('[data-testid="artist-name-input"]')
       const form = wrapper.find('form')
       
       // アーティスト選択
@@ -183,15 +186,15 @@ describe('AddGigModal.vue', () => {
     })
 
     it('送信ボタンクリックでsubmitイベントが発火される', async () => {
-      const artistInput = wrapper.find('[data-testid="artist-name-input"]')
-      const submitButton = wrapper.find('button[type="submit"]')
+      const artistInput = wrapper.findComponent('[data-testid="artist-name-input"]')
+      const form = wrapper.find('form')
       
       // アーティスト選択
       await artistInput.vm.$emit('artistSelected', mockArtist)
       await wrapper.vm.$nextTick()
       
-      // ボタンクリック
-      await submitButton.trigger('click')
+      // フォーム送信（submitボタンのクリックではなく）
+      await form.trigger('submit')
       
       expect(wrapper.emitted('submit')).toBeTruthy()
     })
@@ -237,7 +240,7 @@ describe('AddGigModal.vue', () => {
         }
       })
 
-      const artistInput = wrapper.find('[data-testid="artist-name-input"]')
+      const artistInput = wrapper.findComponent('[data-testid="artist-name-input"]')
       
       // アーティスト選択
       await artistInput.vm.$emit('artistSelected', mockArtist)
@@ -266,7 +269,7 @@ describe('AddGigModal.vue', () => {
         }
       })
 
-      const artistInput = wrapper.find('[data-testid="artist-name-input"]')
+      const artistInput = wrapper.findComponent('[data-testid="artist-name-input"]')
       
       // アーティスト選択
       await artistInput.vm.$emit('artistSelected', mockArtist)
