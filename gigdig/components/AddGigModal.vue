@@ -1,9 +1,12 @@
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, nextTick } from 'vue'
 
 const props = defineProps({
   resetArtistInput: Boolean,
-
+  selectedDate: {
+    type: String,
+    default: '',
+  },
   x: {
     type: Number,
     default: 0,
@@ -34,6 +37,19 @@ watch(() => props.resetArtistInput, (newVal) => {
 watch(() => props.visible, (newVal) => {
   if (!newVal) {
     selectedArtist.value = null;
+  }
+});
+
+// selectedDateが変わったときにdate inputに値を設定
+watch(() => props.selectedDate, (newDate) => {
+  if (newDate) {
+    // nextTickを使ってDOMが更新された後に値を設定
+    nextTick(() => {
+      const dateInput = document.getElementById('gig-date');
+      if (dateInput) {
+        dateInput.value = newDate;
+      }
+    });
   }
 });
 
