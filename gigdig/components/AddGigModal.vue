@@ -47,7 +47,11 @@ watch(() => props.selectedDate, (newDate) => {
     nextTick(() => {
       const dateInput = document.getElementById('gig-date');
       if (dateInput) {
-        dateInput.value = newDate;
+        // 日付を1日増加させて表示
+        const date = new Date(newDate);
+        date.setDate(date.getDate() + 1);
+        const adjustedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        dateInput.value = adjustedDate;
       }
     });
   }
