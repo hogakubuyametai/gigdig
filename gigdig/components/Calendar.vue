@@ -118,7 +118,7 @@ const renderCalendar = async () => {
       const gigContainer = document.createElement("div");
       gigContainer.classList.add("gig-container");
 
-      const selectedDate = new Date(year.value, date.month, date.date)
+      const selectedDate = new Date(year.value, date.month, date.date + 1)
         .toISOString()
         .slice(0, 10);
 
