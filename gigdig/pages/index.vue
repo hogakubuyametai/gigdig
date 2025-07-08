@@ -214,6 +214,7 @@ const hideAddGigModal = () => {
       :visible="showAddGigModal"
       :x="addGigModalX"
       :y="addGigModalY"
+      :selectedDate="selectedDate"
       @closeModal="hideAddGigModal"
       @submit="storeGigInfo"
       @artistSelected="handleSelectedArtist"
