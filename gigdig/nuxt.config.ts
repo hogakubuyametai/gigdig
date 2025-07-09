@@ -6,7 +6,6 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   modules: [
     '@nuxt/eslint',
-    'nuxt-primevue',
     '@nuxtjs/tailwindcss', // Tailwindモジュールを追加
     '@nuxtjs/supabase',
     '@nuxt/image',
