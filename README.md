@@ -54,7 +54,8 @@ gigdig/
 │   ├── Calendar.vue     # カレンダー表示
 │   ├── AddGigModal.vue  # ギグ追加モーダル
 │   ├── GigDetailModal.vue # ギグ詳細モーダル
-│   └── ArtistNameInput.vue # アーティスト名入力 / アーティスト選択
+│   ├── ArtistNameInput.vue # アーティスト名入力 / アーティスト選択
+│   └── ContextMenu.vue  # コンテキストメニュー（Deleteボタン）
 ├── composables/         # 再利用可能なロジック
 │   ├── useGigData.ts    # ギグデータ管理
 │   ├── useSpotifyData.ts # Spotify API連携
@@ -64,11 +65,27 @@ gigdig/
 ├── pages/              # ページコンポーネント
 │   ├── index.vue       # トップページ
 │   ├── login.vue       # ログインページ
-│   └── confirm.vue     # 認証確認
+│   ├── confirm.vue     # 認証確認
+│   └── register-username.vue # ユーザー名登録ページ
 ├── server/api/         # サーバーAPI
 │   └── auth/spotify.js # Spotify Web APIのアクセストークン取得
-└── utils/              # ユーティリティ
-    └── spotify.js      # Spotify API関連関数
+├── tests/              # テストファイル
+│   ├── setup.ts        # テストセットアップ
+│   ├── components/     # コンポーネントテスト
+│   │   ├── AddGigModal.test.ts # ギグ追加モーダルテスト
+│   │   └── Calendar.test.ts    # カレンダーテスト
+│   └── composables/    # Composablesテスト
+│       ├── useArtistCache.test.ts # アーティストキャッシュテスト
+│       ├── useGigData.test.ts     # ギグデータテスト
+│       └── useSpotifyData.test.ts # Spotify APIテスト
+├── __mocks__/          # モックファイル
+│   ├── spotify.ts      # Spotify APIモック
+│   └── supabase.ts     # Supabaseモック
+├── utils/              # ユーティリティ
+│   └── spotify.js      # Spotify API関連関数
+└── docs/               # ドキュメント
+    ├── DESIGN_RULE.md  # デザインルール
+    └── TEST_IMPLEMENTATION_PLAN.md # テスト実装計画
 ```
 
 ## 🎯 使用方法
@@ -108,6 +125,7 @@ gigdig/
 ### GigDetailModal.vue
 - ギグ詳細表示
 - ギグ日付編集機能
+- トップトラック、関連アーティストの表示
 
 ### ArtistNameInput.vue
 - アーティスト名入力コンポーネント
