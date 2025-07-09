@@ -4,6 +4,8 @@
 
 ✨ **実際のアプリを体験**: [https://gigdig.vercel.app/](https://gigdig.vercel.app/)
 
+![image.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/4124035/0f45f4a1-d087-4a45-a306-22013df8fd47.png)
+
 ## ✨ 主な機能
 
 - 🎤 **ギグ管理**: ライブの追加・編集・削除
